@@ -8,7 +8,6 @@ TODO
 - VarianceScaling as weight init
 """
 
-
 nfnet_params = {}
 
 # F-series models
@@ -48,7 +47,7 @@ nfnet_params.update(**{
 })
 
 class NFNet(nn.Module):
-    def __init__(self, variant='F0'):
+    def __init__(self, num_classes, variant='F0'):
         super(NFNet, self).__init__()
 
         block_params = nfnet_params[variant]
@@ -64,6 +63,7 @@ class NFNet(nn.Module):
 
         self.activation = nn.ReLU()
         self.drop_rate = block_params['drop_rate']
+        self.num_classes = num_classes
 
         self.stem = nn.Sequential(
             WSConv2D(in_channels=3, out_channels=16, kernel_size=3, stride=2),
@@ -75,27 +75,57 @@ class NFNet(nn.Module):
             WSConv2D(in_channels=64, out_channels=128, kernel_size=3, stride=2)
         )
 
-        self.blocks = []
         expected_std = 1.0
         alpha = 0.2
+
+        blocks = []
+        in_channels = block_params['width'][0] // 2
 
         for (block_width, stage_depth, expand_ratio, group_size, big_width, stride) in block_args:
             for block_index in range(stage_depth):
                 beta = 1. / expected_std
 
+                out_channels = block_width
+                # TODO: Stochastic Depth
+                # Variables to implement: index, stochdepth_rate, num_blocks
+
+                blocks.append(NFBlock(
+                    in_channels=in_channels, 
+                    out_channels=out_channels,
+                    stride=stride if block_index == 0 else 1))
+
+                in_channels = out_channels
 
                 if block_index == 0:
                     expected_std = 1.0
                 
                 expected_std = (expected_std **2 + alpha**2)**0.5
 
+        self.body = nn.Sequential(*blocks)
 
+        final_conv_channels = 2*in_channels
+        self.final_conv = WSConv2D(in_channels=out_channels, out_channels=final_conv_channels, kernel_size=1)
+        self.pool = nn.AvgPool2d(1)
+        
+        if self.drop_rate > 0.:
+            self.dropout = nn.Dropout(self.drop_rate)
+
+        self.fc = nn.Linear(final_conv_channels, self.num_classes)
+
+        nn.init.normal_(self.fc.weight, mean=0, std=0.01)
 
 
     def forward(self, x):
         out = self.stem(x)
+        out = self.body(out)
+        out = self.activation(self.final_conv(out))
 
-        return out
+        pool = torch.mean(out, dim=(2,3))
+
+        if self.training:
+            pool = self.dropout(pool)
+
+        return self.fc(pool)
 
 class NFBlock(nn.Module):
     def __init__(self, in_channels, out_channels, expansion=0.5, se_ratio=0.5, stride=1, beta=1.0, alpha=0.2, big_width=True):
@@ -118,12 +148,13 @@ class NFBlock(nn.Module):
         
         self.use_projection = self.stride > 1 or self.in_channels != self.out_channels
         if self.use_projection:
-            self.shortcut_avg_pool = nn.AvgPool2d(kernel_size=2)
-            self.conv_shortcut = WSConv2D(self.out_channels, self.out_channels, kernel_size=1)
+            if stride > 1:
+                self.shortcut_avg_pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0 if self.in_channels==1536 else 1)
+            self.conv_shortcut = WSConv2D(self.in_channels, self.out_channels, kernel_size=1)
             
         self.se = SqueezeExcite(self.out_channels, self.out_channels, se_ratio=self.se_ratio)
+        self.skip_gain = nn.Parameter(torch.zeros(1))
 
-        # Skip_gain ???
         # No stochastic depth implemented
         # No group size implemented
         
@@ -136,9 +167,10 @@ class NFBlock(nn.Module):
             shortcut = self.shortcut_avg_pool(out)
             shortcut = self.conv_shortcut(shortcut)
         elif self.use_projection:
-            shortcut = self.conv_shortcut(shortcut)
+            shortcut = self.conv_shortcut(out)
         else:
             shortcut = x
+
 
         out = self.conv0(out)
         out = self.activation(out)
@@ -149,37 +181,29 @@ class NFBlock(nn.Module):
         out = self.conv2(out)
         out = (self.se(out)*2) * out
 
+        out = out * self.skip_gain
         return out * self.alpha + shortcut
 
 class WSConv2D(nn.Conv2d):
-    def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        kernel_size,
-        stride = 1,
-        padding  = 0,
-        dilation = 1,
-        groups: int = 1,
-        bias: bool = True,
-        padding_mode: str = 'zeros'):
+    def __init__(self, in_channels: int, out_channels: int, kernel_size, stride = 1, padding = 0,
+        dilation = 1, groups: int = 1, bias: bool = True, padding_mode: str = 'zeros'):
 
-        super().__init__(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias, padding_mode)
-
-        nn.init.normal_(self.weight, 0, 1)
-
+        super(WSConv2D, self).__init__(in_channels, out_channels, kernel_size, stride, 
+            padding, dilation, groups, bias, padding_mode)
         
-
-        self.gain = nn.Parameter(torch.ones(self.weight.shape[-1]))
+        nn.init.xavier_normal_(self.weight)
+        self.gain = nn.Parameter(torch.ones(self.weight.shape[0]))
 
     def standardized_weights(self, eps=1e-4):
         # Original code: HWCN
         weights = self.weight # NCHW
-        mean = torch.mean(weights, (1,2,3), True)
-        var = torch.var(weights, (1,2,3), True)
-        fan_in = np.prod(weights.shape[1:])
-        scale = torch.rsqrt(torch.maximum(var * fan_in, eps)) * self.gain
+        mean = torch.mean(weights, dim=(1,2,3), keepdims=True)
+        var = torch.var(weights, dim=(1,2,3), keepdims=True)
+        fan_in = torch.prod(torch.Tensor(weights.shape[0:]))
+        scale = torch.rsqrt(torch.maximum(var * fan_in, torch.tensor(eps))) * self.gain.view_as(mean)
         shift = mean * scale
+
+        #print(f"{weights.size()} * {scale.size()} - {shift.size()} = {(weights * scale - shift).size()}")
         return weights * scale - shift
         
     def forward(self, x, eps=1e-4):
@@ -209,17 +233,12 @@ class SqueezeExcite(nn.Module):
         b,c,_,_ = x.size()
         return out.view(b,c,1,1).expand_as(x)
 
-
-
-
-
-
 if __name__=='__main__':
     device = torch.device('cpu')
-    model = NFNet('F0')
+    model = NFNet(80, 'F0')
     print(model)
 
-    img = torch.randn(1, 3, 512, 512)
+    img = torch.randn(1, 3, 256, 256)
 
     model.eval()
     model.to(device)
