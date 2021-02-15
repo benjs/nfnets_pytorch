@@ -14,33 +14,39 @@ class TestSqueezeExcite:
 
 class TestNFBlock:
     def test_shape(self):
-        channels = [256, 512, 1536, 1536]
+        channels = [256, 512, 1536]
 
         for ch in channels:
-            block = NFBlock(ch / 2, ch, stride=1)
+            block = NFBlock(in_channels=ch//2, out_channels=ch, stride=1)
 
-            w,h = 100, 100
-            x = torch.randn(1, ch / 2, h, w)
+            h,w = 200, 200
+            b = 2
+            x = torch.randn(b, ch // 2, h, w)
             
             y = block.conv0(x)
-            assert y.size()[1] == ch / 2
-            assert y.size()[2,4] == torch.Size([h, w])
+            assert y.size()[0] == b
+            assert y.size()[1] == ch // 2
+            assert y.size()[2:4] == torch.Size([h, w])
 
             y = block.conv1(y)
+            assert y.size()[0] == b
             assert y.size()[1] == ch / 2
-            assert y.size()[2,4] == torch.Size([h, w])
+            assert y.size()[2:4] == torch.Size([h, w])
 
             y = block.conv1b(y)
-            assert y.size()[1] == ch / 2
-            assert y.size()[2,4] == torch.Size([h, w])
+            assert y.size()[0] == b
+            assert y.size()[1] == ch // 2
+            assert y.size()[2:4] == torch.Size([h, w])
 
             y = block.conv2(y)
+            assert y.size()[0] == b
             assert y.size()[1] == ch
-            assert y.size()[2,4] == torch.Size([h, w])
+            assert y.size()[2:4] == torch.Size([h, w])
 
             y = block.se(y)
+            assert y.size()[0] == b
             assert y.size()[1] == ch
-            assert y.size()[2,4] == torch.Size([h, w])
+            assert y.size()[2:4] == torch.Size([h, w])
 
 
             
