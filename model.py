@@ -193,17 +193,17 @@ class WSConv2D(nn.Conv2d):
         
         nn.init.xavier_normal_(self.weight)
         self.gain = nn.Parameter(torch.ones(self.weight.shape[0]))
+        self.eps = nn.Parameter(torch.tensor(1e-4))
 
     def standardized_weights(self, eps=1e-4):
         # Original code: HWCN
         weights = self.weight # NCHW
         mean = torch.mean(weights, dim=(1,2,3), keepdims=True)
         var = torch.var(weights, dim=(1,2,3), keepdims=True)
-        fan_in = torch.prod(torch.Tensor(weights.shape[0:]))
-        scale = torch.rsqrt(torch.maximum(var * fan_in, torch.tensor(eps))) * self.gain.view_as(mean)
+        fan_in = torch.prod(torch.Tensor(self.weight.shape[1:]))
+        scale = torch.rsqrt(torch.maximum(var * fan_in, self.eps)) * self.gain.view_as(var)
         shift = mean * scale
 
-        #print(f"{weights.size()} * {scale.size()} - {shift.size()} = {(weights * scale - shift).size()}")
         return weights * scale - shift
         
     def forward(self, x, eps=1e-4):
