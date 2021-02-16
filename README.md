@@ -6,8 +6,9 @@ All credits go to the authors of the [original paper](https://arxiv.org/abs/2102
 - [x] NFNet Models
   - [x] F0-F7
   - [x] Scaled weight standardization
+  - [x] Grouped convolution
   - [x] Squeeze and excite
-  - [ ] Stochstic depth
+  - [x] Stochstic depth
 - [ ] SGD with unit adaptive gradient clipping (SGD-AGC)
 - [x] Training on ImageNet
 - [ ] Tensorboard support
