@@ -8,12 +8,14 @@ All credits go to the authors of the [original paper](https://arxiv.org/abs/2102
   - [x] Scaled weight standardization
   - [x] Squeeze and excite
   - [x] Stochastic depth
-- [ ] SGD with unit adaptive gradient clipping (SGD-AGC)
+- [x] SGD with unit adaptive gradient clipping (SGD-AGC)
 - [x] Training on ImageNet
-- [ ] Tensorboard support
-- [ ] Model validation to Baseline + Second Conv (contribution of somebody with access to GPUs would be helpful)
+- [ ] Tensorboard support + General usability
+- [ ] Multi-GPU support
+- [ ] Model validation to _Baseline + Second Conv_ (please contact me if you have spare GPUs)
 - [ ] Data augmentation
-- [ ] Pre-trained weights (contribution of somebody with access to GPUs would be helpful)
+- [ ] Model validation to _Baseline + CutMix_ (please contact me if you have spare GPUs)
+- [ ] Pre-trained weights (please contact me if you have spare GPUs)
 - [ ] Training on custom data
 - [ ] Signal propagation plots (from [first paper](https://arxiv.org/abs/2101.08692))
 
