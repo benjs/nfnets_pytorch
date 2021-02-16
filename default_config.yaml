@@ -1,11 +1,17 @@
 # This file contains the default train settings
-variant: 'F0'
+device: 'cuda:0' # or 'cpu'
 
+# Model
+variant: 'F0' # F0 - F7
+num_classes: 1000     # Number of classes 
+stochdepth_rate: 0.25 # 0-1, the probability that a layer is dropped during one step
+alpha: 0.2            # Scaling factor at the end of each block
+se_ratio: 0.5         # Squeeze-Excite expansion ratio
+
+# Dataset
 dataset: '/media/benjs/ext/'
-num_classes: 1000
 
-batch_size: 30
+# Training
+batch_size: 35
 epochs: 5000
 learning_rate: 0.001
-
-device: 'cuda:0' # 'cpu' #'cuda:0' # 

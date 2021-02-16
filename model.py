@@ -44,7 +44,7 @@ nfnet_params = {
 }
 
 class NFNet(nn.Module):
-    def __init__(self, num_classes:int, variant:str='F0'):
+    def __init__(self, num_classes:int, variant:str='F0', stochdepth_rate:float=None, alpha:float=0.2, se_ratio:float=0.5):
         super(NFNet, self).__init__()
 
         block_params = nfnet_params[variant]
@@ -97,7 +97,9 @@ class NFNet(nn.Module):
                     in_channels=in_channels, 
                     out_channels=out_channels,
                     stride=stride if block_index == 0 else 1,
+                    alpha=alpha,
                     beta=beta,
+                    se_ratio=se_ratio,
                     stochdepth_rate=block_sd_rate))
 
                 in_channels = out_channels
