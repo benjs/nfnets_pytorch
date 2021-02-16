@@ -56,7 +56,7 @@ class NFNet(nn.Module):
             block_params['width'],
             block_params['depth'],
             [0.5] * 4, # bottleneck pattern
-            [128] * 4, # group pattern
+            [1] * 4, # group pattern. Orignal groups [128] * 4
             [True] * 4, # big width,
             [1, 2, 2, 2] # stride pattern
         )
@@ -75,8 +75,11 @@ class NFNet(nn.Module):
             WSConv2D(in_channels=64, out_channels=128, kernel_size=3, stride=2)
         )
 
-        expected_std = 1.0
         alpha = 0.2
+        expected_std = 1.0
+        stochdepth_rate = 0.1
+        num_blocks = sum(block_params['depth'])
+        index = 0
 
         blocks = []
         in_channels = block_params['width'][0] // 2
@@ -85,6 +88,7 @@ class NFNet(nn.Module):
             for block_index in range(stage_depth):
                 beta = 1. / expected_std
 
+                block_sd_rate = stochdepth_rate * index / num_blocks
                 out_channels = block_width
                 # TODO: Stochastic Depth
                 # Variables to implement: index, stochdepth_rate, num_blocks
@@ -93,9 +97,11 @@ class NFNet(nn.Module):
                     in_channels=in_channels, 
                     out_channels=out_channels,
                     stride=stride if block_index == 0 else 1,
-                    beta=beta))
+                    beta=beta,
+                    stochdepth_rate=block_sd_rate))
 
                 in_channels = out_channels
+                index += 1
 
                 if block_index == 0:
                     expected_std = 1.0
@@ -112,8 +118,7 @@ class NFNet(nn.Module):
             self.dropout = nn.Dropout(self.drop_rate)
 
         self.fc = nn.Linear(final_conv_channels, self.num_classes)
-        nn.init.zeros_(self.fc.weight)
-
+        nn.init.normal_(self.fc.weight, 0, 0.01)
 
     def forward(self, x):
         out = self.stem(x)
@@ -127,7 +132,7 @@ class NFNet(nn.Module):
         return self.fc(pool)
 
 class NFBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, expansion=0.5, se_ratio=0.5, stride=1, beta=1.0, alpha=0.2, big_width=True):
+    def __init__(self, in_channels, out_channels, expansion=0.5, se_ratio=0.5, stride=1, beta=1.0, alpha=0.2, big_width=True, stochdepth_rate=None):
         super(NFBlock, self).__init__()
 
         self.in_channels = in_channels
@@ -154,7 +159,9 @@ class NFBlock(nn.Module):
         self.se = SqueezeExcite(self.out_channels, self.out_channels, se_ratio=self.se_ratio)
         self.skip_gain = nn.Parameter(torch.zeros(1))
 
-        # No stochastic depth implemented
+        self.use_stochdepth = stochdepth_rate is not None and stochdepth_rate > 0. and stochdepth_rate < 1.
+        if self.use_stochdepth:
+            self.stoch_depth = StochDepth(stochdepth_rate)
         # No group size implemented
 
     def forward(self, x):
@@ -173,6 +180,9 @@ class NFBlock(nn.Module):
         out = self.activation(self.conv1b(out))
         out = self.conv2(out)
         out = (self.se(out)*2) * out
+
+        if self.use_stochdepth:
+            out = self.stoch_depth(out)
 
         return out * self.alpha * self.skip_gain + shortcut
 
@@ -210,7 +220,7 @@ class WSConv2D(nn.Conv2d):
         )
 
 class SqueezeExcite(nn.Module):
-    def __init__(self, in_channels, out_channels, se_ratio=0.5):
+    def __init__(self, in_channels:int, out_channels:int, se_ratio:float=0.5):
         super(SqueezeExcite, self).__init__()
 
         self.in_channels = in_channels
@@ -231,3 +241,20 @@ class SqueezeExcite(nn.Module):
 
         b,c,_,_ = x.size()
         return out.view(b,c,1,1).expand_as(x)
+
+class StochDepth(nn.Module):
+    def __init__(self, stochdepth_rate:float):
+        super(StochDepth, self).__init__()
+
+        self.drop_rate = stochdepth_rate
+
+    def forward(self, x):
+        if not self.training:
+            return x
+
+        batch_size = x.shape[0]
+        rand_tensor = torch.rand(batch_size, 1, 1, 1).to(x.device)
+        keep_prob = 1 - self.drop_rate
+        binary_tensor = torch.floor(rand_tensor + keep_prob)
+        
+        return x * binary_tensor
