@@ -43,6 +43,9 @@ class NFNet(nn.Module):
         alpha:float=0.2, se_ratio:float=0.5, groups:int=1):
         super(NFNet, self).__init__()
 
+        if not variant in nfnet_params:
+            raise RuntimeError(f"Variant {variant} does not exist and could not be loaded.")
+
         block_params = nfnet_params[variant]
 
         self.train_imsize = block_params['train_imsize']
