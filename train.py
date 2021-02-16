@@ -15,7 +15,8 @@ from dataset import get_dataset
 def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path:Path, 
     learning_rate:float=0.1, device:str='cpu', stochdepth_rate:float=None, alpha:float=0.2,
     group_size:int=1, se_ratio:float=0.5, scale_lr:bool=True, momentum:float=0.9,
-    weight_decay:float=2e-5, nesterov:bool=True, clipping:float=0.1, num_workers:int=0) -> None:
+    weight_decay:float=2e-5, nesterov:bool=True, clipping:float=0.1, num_workers:int=0,
+    overfit:bool=False) -> None:
     
     model = NFNet(
         num_classes=num_classes, 
@@ -33,7 +34,9 @@ def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path
     ])
 
     dataset = get_dataset(path=dataset_path, transforms=transforms)
-    subset = Subset(dataset, range(batch_size))
+    
+    if overfit:
+        dataset = Subset(dataset, range(batch_size))
 
     dataloader = DataLoader(
         dataset=dataset, 
@@ -79,7 +82,9 @@ def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Train NFNets.')
     parser.add_argument('--config', type=Path, help='Path to config.yaml', default='default_config.yaml')
-    parser.add_argument('--overfit')
+    parser.add_argument('--batch-size', type=int, help='Training batch size', default=None)
+    parser.add_argument('--overfit', const=True, default=False, nargs='?', help='Crop the dataset to the batch size and force model to (hopefully) overfit')
+    parser.add_argument('--variant', type=str, help='NFNet variant to train', default=None)
     args = parser.parse_args()
     
     if not args.config.exists():
@@ -90,10 +95,10 @@ if __name__=='__main__':
         config = yaml.safe_load(file)
 
     train(
-        variant=config['variant'],
+        variant=config['variant'] if args.variant is None else args.variant,
         dataset_path=config['dataset'],
         num_classes=config['num_classes'], 
-        batch_size=config['batch_size'],
+        batch_size=config['batch_size'] if args.batch_size is None else args.batch_size,
         epochs=config['epochs'],
         learning_rate=config['learning_rate'],
         device=config['device'],
@@ -106,4 +111,5 @@ if __name__=='__main__':
         nesterov=config['nesterov'],
         clipping=config['clipping'],
         num_workers=config['num_workers'],
+        overfit=args.overfit
         )
