@@ -6,14 +6,14 @@ All credits go to the authors of the [original paper](https://arxiv.org/abs/2102
 - [x] NFNet Models
   - [x] F0-F7
   - [x] Scaled weight standardization
-  - [x] Grouped convolution
   - [x] Squeeze and excite
-  - [x] Stochstic depth
+  - [x] Stochastic depth
 - [ ] SGD with unit adaptive gradient clipping (SGD-AGC)
 - [x] Training on ImageNet
 - [ ] Tensorboard support
+- [ ] Model validation to Baseline + Second Conv (contribution of somebody with access to GPUs would be helpful)
 - [ ] Data augmentation
-- [ ] Pre-trained weights and validation results (someone with strong GPUs is needed)
+- [ ] Pre-trained weights (contribution of somebody with access to GPUs would be helpful)
 - [ ] Training on custom data
 - [ ] Signal propagation plots (from [first paper](https://arxiv.org/abs/2101.08692))
 
