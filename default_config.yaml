@@ -7,11 +7,12 @@ num_classes: 1000     # Number of classes
 stochdepth_rate: 0.25 # 0-1, the probability that a layer is dropped during one step
 alpha: 0.2            # Scaling factor at the end of each block
 se_ratio: 0.5         # Squeeze-Excite expansion ratio
+groups: 128           # Number of groups in convolution
 
 # Dataset
 dataset: '/media/benjs/ext/'
 
 # Training
-batch_size: 35
+batch_size: 60
 epochs: 5000
 learning_rate: 0.001

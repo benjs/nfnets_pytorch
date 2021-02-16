@@ -3,11 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-"""
-TODO
-- VarianceScaling as weight init
-"""
-
 nfnet_params = {
     'F0': {
         'width': [256, 512, 1536, 1536], 'depth': [1, 2, 6, 3],
@@ -44,7 +39,8 @@ nfnet_params = {
 }
 
 class NFNet(nn.Module):
-    def __init__(self, num_classes:int, variant:str='F0', stochdepth_rate:float=None, alpha:float=0.2, se_ratio:float=0.5):
+    def __init__(self, num_classes:int, variant:str='F0', stochdepth_rate:float=None, 
+        alpha:float=0.2, se_ratio:float=0.5, groups:int=1):
         super(NFNet, self).__init__()
 
         block_params = nfnet_params[variant]
@@ -75,11 +71,11 @@ class NFNet(nn.Module):
             block_params['width'],
             block_params['depth'],
             [0.5] * 4, # bottleneck pattern
-            [1] * 4, # group pattern. Orignal groups [128] * 4
+            [groups] * 4, # group pattern. Original groups [128] * 4
             [True] * 4, # big width,
             [1, 2, 2, 2] # stride pattern
         )
-        
+
         for (block_width, stage_depth, expand_ratio, group_size, big_width, stride) in block_args:
             for block_index in range(stage_depth):
                 beta = 1. / expected_std
@@ -94,6 +90,7 @@ class NFNet(nn.Module):
                     alpha=alpha,
                     beta=beta,
                     se_ratio=se_ratio,
+                    group_size=group_size,
                     stochdepth_rate=block_sd_rate))
 
                 in_channels = out_channels
@@ -128,7 +125,10 @@ class NFNet(nn.Module):
         return self.fc(pool)
 
 class NFBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, expansion=0.5, se_ratio=0.5, stride=1, beta=1.0, alpha=0.2, big_width=True, stochdepth_rate=None):
+    def __init__(self, in_channels:int, out_channels:int, expansion:float=0.5, 
+        se_ratio:float=0.5, stride:int=1, beta:float=1.0, alpha:float=0.2, 
+        group_size:int=1, big_width:bool=True, stochdepth_rate:float=None):
+
         super(NFBlock, self).__init__()
 
         self.in_channels = in_channels
@@ -137,13 +137,14 @@ class NFBlock(nn.Module):
         self.se_ratio = se_ratio
         self.activation = nn.ReLU(inplace=True)
         self.beta, self.alpha = beta, alpha
+        self.group_size = group_size
         
         self.width = int((self.out_channels if big_width else self.in_channels) * expansion)
         self.stride = stride
 
         self.conv0 = WSConv2D(in_channels=self.in_channels, out_channels=self.width, kernel_size=1)
-        self.conv1 = WSConv2D(in_channels=self.width, out_channels=self.width, kernel_size=3, stride=stride, padding=1)
-        self.conv1b = WSConv2D(in_channels=self.width, out_channels=self.width, kernel_size=3, stride=1, padding=1)
+        self.conv1 = WSConv2D(in_channels=self.width, out_channels=self.width, kernel_size=3, stride=stride, padding=1, groups=group_size)
+        self.conv1b = WSConv2D(in_channels=self.width, out_channels=self.width, kernel_size=3, stride=1, padding=1, groups=group_size)
         self.conv2 = WSConv2D(in_channels=self.width, out_channels=self.out_channels, kernel_size=1)
         
         self.use_projection = self.stride > 1 or self.in_channels != self.out_channels
@@ -158,7 +159,6 @@ class NFBlock(nn.Module):
         self.use_stochdepth = stochdepth_rate is not None and stochdepth_rate > 0. and stochdepth_rate < 1.
         if self.use_stochdepth:
             self.stoch_depth = StochDepth(stochdepth_rate)
-        # No group size implemented
 
     def forward(self, x):
         out = self.activation(x) * self.beta
