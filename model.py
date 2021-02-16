@@ -95,7 +95,8 @@ class NFNet(nn.Module):
                 blocks.append(NFBlock(
                     in_channels=in_channels, 
                     out_channels=out_channels,
-                    stride=stride if block_index == 0 else 1))
+                    stride=stride if block_index == 0 else 1,
+                    beta=beta))
 
                 in_channels = out_channels
 
