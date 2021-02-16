@@ -14,7 +14,7 @@ and the models have not been thoroughly tested.
 - [x] SGD with unit adaptive gradient clipping (SGD-AGC)
 - [x] Training on ImageNet
 - [x] Model overfits on small dataset
-- [ ] Tensorboard support + General usability
+- [ ] Tensorboard support + General usability (eval script etc.)
 - [ ] Multi-GPU support
 - [ ] Training on complete dataset and validation to _Baseline + Second Conv_ (please contact me if you have spare GPUs)
 - [ ] Data augmentation
