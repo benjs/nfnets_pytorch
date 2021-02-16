@@ -139,7 +139,7 @@ class NFBlock(nn.Module):
         self.out_channels = out_channels
         self.expansion = expansion
         self.se_ratio = se_ratio
-        self.activation = nn.ReLU()
+        self.activation = nn.ReLU(inplace=True)
         self.beta, self.alpha = beta, alpha
         
         self.width = int((self.out_channels if big_width else self.in_channels) * expansion)
