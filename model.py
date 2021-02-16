@@ -8,10 +8,7 @@ TODO
 - VarianceScaling as weight init
 """
 
-nfnet_params = {}
-
-# F-series models
-nfnet_params.update(**{
+nfnet_params = {
     'F0': {
         'width': [256, 512, 1536, 1536], 'depth': [1, 2, 6, 3],
         'train_imsize': 192, 'test_imsize': 256,
@@ -44,7 +41,7 @@ nfnet_params.update(**{
         'width': [256, 512, 1536, 1536], 'depth': [8, 16, 48, 24],
         'train_imsize': 480, 'test_imsize': 608,
         'RA_level': '415', 'drop_rate': 0.5},
-})
+}
 
 class NFNet(nn.Module):
     def __init__(self, num_classes:int, variant:str='F0'):
