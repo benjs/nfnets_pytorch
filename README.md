@@ -1,16 +1,23 @@
 # NFNet Pytorch Implementation
- - [Original Repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/nf_resnet.py)
- - [Original Paper](https://arxiv.org/abs/2102.06171)
+
+All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171). This repo is inspired by the JAX implementation of the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/nf_resnet.py). Visit their repo for citing.
+
+## Development status
+-[x] NFNets
+  - [x] Models F0-F7
+  - [x] Scaled weight standardization
+  - [x] Squeeze and excite
+  - [ ] Stochstic depth
+- [ ] SGD with unit adaptive gradient clipping (SGD-AGC)
+- [x] Training on ImageNet
+- [ ] Training on custom data
 
 ## Installation
-Install python and opencv if you don't have it already. [Here](https://benjs.de/opencv/2021/02/03/install-opencv-and-python-without-root-access.html) is an instruction.
 Adjust the CUDA version of the torch and torchvision module in [requirements.txt](requirements.txt) to your installation and enter
 ```
 pip3 install -r requirements.txt
 ```
 
-## Demo run
-After installation, check if everything is working correctly with
-```
-python3 demo.py --device 0
-```
+# Train on ImageNet
+1. You need the ImageNet dataset which you can download at [image-net.org](http://www.image-net.org/challenges/LSVRC/2012/downloads.php#images) after asking for access. Place the dev_kit.tar and unpacked image directory in the same directory.
+2. Go to the [config file](default_config.yaml) and change `dataset` to the directory you placed the image directory and dev_kit.tar in.
