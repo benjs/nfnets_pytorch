@@ -112,8 +112,7 @@ class NFNet(nn.Module):
             self.dropout = nn.Dropout(self.drop_rate)
 
         self.fc = nn.Linear(final_conv_channels, self.num_classes)
-
-        nn.init.normal_(self.fc.weight, mean=0, std=0.01)
+        nn.init.zeros_(self.fc.weight)
 
 
     def forward(self, x):
@@ -122,7 +121,7 @@ class NFNet(nn.Module):
         out = self.activation(self.final_conv(out))
         pool = torch.mean(out, dim=(2,3))
 
-        if self.training:
+        if self.training and self.drop_rate > 0.:
             pool = self.dropout(pool)
 
         return self.fc(pool)
@@ -175,8 +174,7 @@ class NFBlock(nn.Module):
         out = self.conv2(out)
         out = (self.se(out)*2) * out
 
-        out = out * self.skip_gain
-        return out * self.alpha + shortcut
+        return out * self.alpha * self.skip_gain + shortcut
 
 # Implementation mostly from https://arxiv.org/abs/2101.08692
 # Implemented changes from https://arxiv.org/abs/2102.06171 and
