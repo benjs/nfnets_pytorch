@@ -1,0 +1,11 @@
+# This file contains the default train settings
+variant: 'F0'
+
+dataset: '/media/benjs/ext/'
+num_classes: 1000
+
+batch_size: 30
+epochs: 5000
+learning_rate: 0.001
+
+device: 'cuda:0' # 'cpu' #'cuda:0' # 
