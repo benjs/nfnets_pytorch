@@ -36,6 +36,8 @@ pip3 install -r requirements.txt
 2. Go to the [config file](default_config.yaml) and change `dataset` to the directory you placed the image directory and dev_kit.tar in.
 3. Run `python3 train.py`
 
+I recommend overfitting on a small subset of the dataset to test the model. Do that by simply running `python3 train.py --overfit`.
+
 ### Tested batch sizes for a single GPU with 8GB VRAM
 |  F0  |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |  F7  |  
 |:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
