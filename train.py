@@ -68,7 +68,7 @@ def train(variant:str, num_classes:int, batch_size:int,
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Train NFNets.')
-    parser.add_argument('--config', type=Path, required=True, help='Path to config.yaml')
+    parser.add_argument('--config', type=Path, help='Path to config.yaml', default='default_config.yaml')
     args = parser.parse_args()
     
     if not args.config.exists():
