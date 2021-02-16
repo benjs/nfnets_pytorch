@@ -3,7 +3,7 @@
 All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171). This repo is inspired by the JAX implementation of the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/nf_resnet.py). Visit their repo for citing.
 
 ## Development status
--[x] NFNets
+- [x] NFNets
   - [x] Models F0-F7
   - [x] Scaled weight standardization
   - [x] Squeeze and excite
