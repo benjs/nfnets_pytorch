@@ -123,7 +123,6 @@ class NFNet(nn.Module):
         out = self.stem(x)
         out = self.body(out)
         out = self.activation(self.final_conv(out))
-
         pool = torch.mean(out, dim=(2,3))
 
         if self.training:
@@ -161,8 +160,6 @@ class NFBlock(nn.Module):
 
         # No stochastic depth implemented
         # No group size implemented
-        
-
 
     def forward(self, x):
         out = self.activation(x) * self.beta
@@ -175,13 +172,9 @@ class NFBlock(nn.Module):
         else:
             shortcut = x
 
-
-        out = self.conv0(out)
-        out = self.activation(out)
-        out = self.conv1(out)
-        out = self.activation(out)
-        out = self.conv1b(out)
-        out = self.activation(out)
+        out = self.activation(self.conv0(out))
+        out = self.activation(self.conv1(out))
+        out = self.activation(self.conv1b(out))
         out = self.conv2(out)
         out = (self.se(out)*2) * out
 
@@ -231,7 +224,7 @@ class SqueezeExcite(nn.Module):
 
         self.hidden_channels = max(1, int(self.in_channels * self.se_ratio))
         
-        self.activation = nn.ReLU()
+        self.activation = nn.ReLU(inplace=True)
         self.fc0 = nn.Linear(self.in_channels, self.hidden_channels)
         self.fc1 = nn.Linear(self.hidden_channels, self.out_channels)
         self.sigmoid = nn.Sigmoid()
@@ -243,17 +236,3 @@ class SqueezeExcite(nn.Module):
 
         b,c,_,_ = x.size()
         return out.view(b,c,1,1).expand_as(x)
-
-if __name__=='__main__':
-    device = torch.device('cpu')
-    model = NFNet(80, 'F0')
-    print(model)
-
-    img = torch.randn(1, 3, 256, 256)
-
-    model.eval()
-    model.to(device)
-    with torch.no_grad():
-        res = model(img)
-
-        print(res.shape)
