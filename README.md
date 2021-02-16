@@ -1,6 +1,6 @@
 # NFNet Pytorch Implementation
 
-All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171). This repo is inspired by their JAX implementation in the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/nf_resnet.py). Visit their repo for citing.
+All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171): High-Performance Large-Scale Image Recognition Without Normalization. This repo is inspired by their JAX implementation in the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/nf_resnet.py). Visit their repo for citing.
 
 ## Development status
 - [x] NFNet Models
@@ -12,6 +12,7 @@ All credits go to the authors of the [original paper](https://arxiv.org/abs/2102
 - [x] Training on ImageNet
 - [ ] Tensorboard support
 - [ ] Data augmentation
+- [ ] Pre-trained weights and validation results (someone with strong GPUs is needed)
 - [ ] Training on custom data
 - [ ] Signal propagation plots (from [first paper](https://arxiv.org/abs/2101.08692))
 
