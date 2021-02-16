@@ -188,6 +188,9 @@ class NFBlock(nn.Module):
         out = out * self.skip_gain
         return out * self.alpha + shortcut
 
+# Implementation mostly from https://arxiv.org/abs/2101.08692
+# Implemented changes from https://arxiv.org/abs/2102.06171 and
+#  https://github.com/deepmind/deepmind-research/tree/master/nfnets
 class WSConv2D(nn.Conv2d):
     def __init__(self, in_channels: int, out_channels: int, kernel_size, stride = 1, padding = 0,
         dilation = 1, groups: int = 1, bias: bool = True, padding_mode: str = 'zeros'):
@@ -196,23 +199,27 @@ class WSConv2D(nn.Conv2d):
             padding, dilation, groups, bias, padding_mode)
         
         nn.init.xavier_normal_(self.weight)
-        self.gain = nn.Parameter(torch.ones(self.weight.shape[0]))
-        self.eps = nn.Parameter(torch.tensor(1e-4))
+        self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
+        self.eps = nn.Parameter(torch.tensor(1e-4), requires_grad=False)
 
-    def standardized_weights(self, eps=1e-4):
+    def standardized_weights(self):
         # Original code: HWCN
-        weights = self.weight # NCHW
-        mean = torch.mean(weights, dim=(1,2,3), keepdims=True)
-        var = torch.var(weights, dim=(1,2,3), keepdims=True)
-        fan_in = torch.prod(torch.Tensor(self.weight.shape[1:]))
-        scale = torch.rsqrt(torch.maximum(var * fan_in, self.eps)) * self.gain.view_as(var)
-        shift = mean * scale
-
-        return weights * scale - shift
+        mean = torch.mean(self.weight, dim=(1,2,3), keepdims=True)
+        var = torch.var(self.weight, dim=(1,2,3), keepdims=True)
+        fan_in = np.prod(self.weight.shape[1:])
+        scale = torch.rsqrt(torch.maximum(var * fan_in, self.eps)) * self.gain
+        return (self.weight - mean) * scale
         
-    def forward(self, x, eps=1e-4):
-        weights = self.standardized_weights(eps)
-        return super()._conv_forward(x, weights)
+    def forward(self, x):
+        return F.conv2d(
+            input=x,
+            weight=self.standardized_weights(),
+            bias=self.bias,
+            stride=self.stride,
+            padding=self.padding,
+            dilation=self.dilation,
+            groups=self.groups
+        )
 
 class SqueezeExcite(nn.Module):
     def __init__(self, in_channels, out_channels, se_ratio=0.5):
