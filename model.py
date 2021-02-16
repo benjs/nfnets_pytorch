@@ -51,16 +51,6 @@ class NFNet(nn.Module):
 
         self.train_imsize = block_params['train_imsize']
         self.test_imsize = block_params['test_imsize']
-
-        block_args = zip(
-            block_params['width'],
-            block_params['depth'],
-            [0.5] * 4, # bottleneck pattern
-            [1] * 4, # group pattern. Orignal groups [128] * 4
-            [True] * 4, # big width,
-            [1, 2, 2, 2] # stride pattern
-        )
-
         self.activation = nn.ReLU()
         self.drop_rate = block_params['drop_rate']
         self.num_classes = num_classes
@@ -75,23 +65,27 @@ class NFNet(nn.Module):
             WSConv2D(in_channels=64, out_channels=128, kernel_size=3, stride=2)
         )
 
-        alpha = 0.2
-        expected_std = 1.0
-        stochdepth_rate = 0.1
-        num_blocks = sum(block_params['depth'])
-        index = 0
+        num_blocks, index = sum(block_params['depth']), 0
 
         blocks = []
+        expected_std = 1.0
         in_channels = block_params['width'][0] // 2
 
+        block_args = zip(
+            block_params['width'],
+            block_params['depth'],
+            [0.5] * 4, # bottleneck pattern
+            [1] * 4, # group pattern. Orignal groups [128] * 4
+            [True] * 4, # big width,
+            [1, 2, 2, 2] # stride pattern
+        )
+        
         for (block_width, stage_depth, expand_ratio, group_size, big_width, stride) in block_args:
             for block_index in range(stage_depth):
                 beta = 1. / expected_std
 
                 block_sd_rate = stochdepth_rate * index / num_blocks
                 out_channels = block_width
-                # TODO: Stochastic Depth
-                # Variables to implement: index, stochdepth_rate, num_blocks
 
                 blocks.append(NFBlock(
                     in_channels=in_channels, 
