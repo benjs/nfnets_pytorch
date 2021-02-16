@@ -47,10 +47,13 @@ nfnet_params.update(**{
 })
 
 class NFNet(nn.Module):
-    def __init__(self, num_classes, variant='F0'):
+    def __init__(self, num_classes:int, variant:str='F0'):
         super(NFNet, self).__init__()
 
         block_params = nfnet_params[variant]
+
+        self.train_imsize = block_params['train_imsize']
+        self.test_imsize = block_params['test_imsize']
 
         block_args = zip(
             block_params['width'],
