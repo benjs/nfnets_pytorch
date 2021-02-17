@@ -1,6 +1,6 @@
 # NFNet Pytorch Implementation
 
-All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171): High-Performance Large-Scale Image Recognition Without Normalization. This repo is inspired by their JAX implementation in the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/nf_resnet.py). Visit their repo for citing.
+All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171): High-Performance Large-Scale Image Recognition Without Normalization. This repo is inspired by their JAX implementation in the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/). Visit their repo for citing.
 
 ## Development status
 Generally, the development is in a very early stage
@@ -11,7 +11,7 @@ and the models have not been thoroughly tested.
   - [x] Scaled weight standardization
   - [x] Squeeze and excite
   - [x] Stochastic depth
-  - [ ] FP16 Operations
+  - [x] FP16 Operations
 - [x] SGD with unit adaptive gradient clipping (SGD-AGC)
   - [ ] Exclude certain layers from weight-decay, clipping
 - [x] Training on ImageNet
@@ -26,22 +26,16 @@ and the models have not been thoroughly tested.
 - [ ] Training on custom data
 - [ ] Signal propagation plots (from [first paper](https://arxiv.org/abs/2101.08692))
 
-## Installation
+## Get started
 Adjust the CUDA version of the torch and torchvision module in [requirements.txt](requirements.txt) to your existing installation and enter
 ```
-python3 -m venv venv
-source venv/bin/activate
+git clone https://github.com/benjs/nfnet_pytorch.git
 pip3 install -r requirements.txt
 ```
+Go to the [config file](default_config.yaml) and enter the path to your ImageNet directory (downloadable after asking for access from [image-net.org](http://www.image-net.org/challenges/LSVRC/2012/downloads.php#images)).
+The directory needs to contain the unpacked ImageNet archives and the dev_kit.tar file.
 
-## Train on ImageNet
-1. You need the ImageNet dataset which you can download at [image-net.org](http://www.image-net.org/challenges/LSVRC/2012/downloads.php#images) after asking for access. Place the dev_kit.tar and unpacked image directory in the same directory.
-2. Go to the [config file](default_config.yaml) and change `dataset` to the directory you placed the image directory and dev_kit.tar in.
-3. Run `python3 train.py`
-
-I recommend overfitting on a small subset of the dataset to test the model. Do that by simply running `python3 train.py --overfit`.
-
-### Tested batch sizes for a single GPU with 8GB VRAM
-|  F0  |  F1  |  F2  |  F3  |  F4  |  F5  |  F6  |  F7  |  
-|:----:|:----:|:----:|:----:|:----:|:----:|:----:|:----:|
-|  60  |  20  |  9  |  3  |  1  |  -  |  -  |  -  |
+Start training with
+```
+python3 train.py --config default_config.yaml
+```

@@ -252,7 +252,7 @@ class StochDepth(nn.Module):
             return x
 
         batch_size = x.shape[0]
-        rand_tensor = torch.rand(batch_size, 1, 1, 1).to(x.device)
+        rand_tensor = torch.rand(batch_size, 1, 1, 1).type_as(x).to(x.device)
         keep_prob = 1 - self.drop_rate
         binary_tensor = torch.floor(rand_tensor + keep_prob)
         

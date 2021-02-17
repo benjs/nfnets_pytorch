@@ -1,3 +1,4 @@
+from torch.tensor import Tensor
 import yaml
 import argparse
 from pathlib import Path
@@ -27,6 +28,9 @@ def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path
         groups=group_size,
         )
 
+    # Use FP16 operations to fasten training
+    model.half()
+
     transforms = Compose([
         Resize((model.train_imsize, model.train_imsize)),
         ToTensor(),
@@ -40,7 +44,7 @@ def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path
 
     dataloader = DataLoader(
         dataset=dataset, 
-        batch_size=batch_size, #=batch_size
+        batch_size=batch_size,
         shuffle=True,
         num_workers=num_workers, 
         pin_memory=True)
@@ -65,12 +69,12 @@ def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path
         model.train()
 
         for step, data in enumerate(dataloader):
-            inputs = data[0].to(device)
+            inputs = data[0].half().to(device)
             targets = data[1].to(device)
 
             optimizer.zero_grad()
 
-            output = model(inputs)
+            output = model(inputs).type(torch.float32)
             loss = ce_loss(output, targets)
             loss.backward()
             optimizer.step()
@@ -93,6 +97,8 @@ if __name__=='__main__':
 
     with args.config.open() as file:
         config = yaml.safe_load(file)
+
+
 
     train(
         variant=config['variant'] if args.variant is None else args.variant,

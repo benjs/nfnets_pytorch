@@ -2,7 +2,7 @@
 device: 'cuda:0' # or 'cpu'
 
 # Model
-variant: 'F0' # F0 - F7
+variant: 'F0'         # F0 - F7
 num_classes: 1000     # Number of classes 
 stochdepth_rate: 0.25 # 0-1, the probability that a layer is dropped during one step
 alpha: 0.2            # Scaling factor at the end of each block
@@ -12,9 +12,10 @@ groups: 128           # Number of groups in convolution
 # Dataset
 dataset: '/media/benjs/ext/'  # Dataset root directory
 num_workers: 8                # Number of workers in dataloader
+pin_memory: False             # This can fasten or slow down data loading depending on your hardware
 
 # Training
-batch_size: 60        # Batch size
+batch_size: 128        # Batch size
 epochs: 5000          # Number of epochs
 learning_rate: 0.1    # Learning rate
 scale_lr: True        # Scale learning rate with batch size. lr = lr*batch_size/256
