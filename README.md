@@ -11,15 +11,17 @@ and the models have not been thoroughly tested.
   - [x] Scaled weight standardization
   - [x] Squeeze and excite
   - [x] Stochastic depth
+  - [ ] FP16 Operations
 - [x] SGD with unit adaptive gradient clipping (SGD-AGC)
+  - [ ] Exclude certain layers from weight-decay, clipping
 - [x] Training on ImageNet
 - [x] Model overfits on small dataset
 - [ ] Tensorboard support + General usability (eval script etc.)
 - [ ] Multi-GPU support
-- [ ] Training on complete dataset and validation to _Baseline + Second Conv_ (please contact me if you have spare GPUs)
+- [ ] Training on complete dataset and validation to _Baseline + Second Conv_ 
 - [ ] Data augmentation
-- [ ] Model validation to _Baseline + CutMix_ (please contact me if you have spare GPUs)
-- [ ] Pre-trained weights (please contact me if you have spare GPUs)
+- [ ] Model validation to _Baseline + CutMix_ 
+- [ ] Pre-trained weights 
 - [ ] Training on custom data
 - [ ] Signal propagation plots (from [first paper](https://arxiv.org/abs/2101.08692))
 
