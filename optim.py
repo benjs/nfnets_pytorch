@@ -1,6 +1,5 @@
+from typing import Callable
 import torch
-from torch._C import is_grad_enabled
-from torch.autograd import grad
 from torch.optim import Optimizer
 
 # Compute norm depending on the shape of x
@@ -27,7 +26,7 @@ def unitwise_norm(x):
 # This is a copy of the pytorch SGD implementation
 # enhanced with gradient clipping
 class SGD_AGC(Optimizer):
-    def __init__(self, params, lr:float, momentum=0, dampening=0,
+    def __init__(self, named_params, lr:float, momentum=0, dampening=0,
                  weight_decay=0, nesterov=False, clipping:float=None, eps:float=1e-3):
         if lr < 0.0:
             raise ValueError("Invalid learning rate: {}".format(lr))
@@ -45,6 +44,12 @@ class SGD_AGC(Optimizer):
 
         if nesterov and (momentum <= 0 or dampening != 0):
             raise ValueError("Nesterov momentum requires a momentum and zero dampening")
+
+        # Put params in list so each one gets its own group
+        params = []
+        for name, param in named_params:
+            params.append({'params': param, 'name': name})
+
         super(SGD_AGC, self).__init__(params, defaults)
 
     def __setstate__(self, state):

@@ -57,13 +57,26 @@ def train(config:dict) -> None:
     model.to(device)
 
     optimizer = optim.SGD_AGC(
-        model.parameters(), 
+        # The optimizer needs all parameter names 
+        # to filter them by hand later
+        named_params=model.named_parameters(), 
         lr=learning_rate,
         momentum=config['momentum'],
         clipping=config['clipping'],
         weight_decay=config['weight_decay'], 
         nesterov=config['nesterov']
         )
+    
+    # Find desired parameters and exclude them 
+    # from weight decay and clipping
+    for group in optimizer.param_groups:
+        name = group['name'] 
+        
+        if model.exclude_from_weight_decay(name):
+            group['weight_decay'] = 0
+
+        if model.exclude_from_clipping(name):
+            group['clipping'] = None
 
     criterion = nn.CrossEntropyLoss()
 

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+import re
 
 nfnet_params = {
     'F0': {
@@ -113,8 +114,8 @@ class NFNet(nn.Module):
         if self.drop_rate > 0.:
             self.dropout = nn.Dropout(self.drop_rate)
 
-        self.fc = nn.Linear(final_conv_channels, self.num_classes)
-        nn.init.normal_(self.fc.weight, 0, 0.01)
+        self.final_fc = nn.Linear(final_conv_channels, self.num_classes)
+        nn.init.normal_(self.final_fc.weight, 0, 0.01)
 
     def forward(self, x):
         out = self.stem(x)
@@ -125,7 +126,18 @@ class NFNet(nn.Module):
         if self.training and self.drop_rate > 0.:
             pool = self.dropout(pool)
 
-        return self.fc(pool)
+        return self.final_fc(pool)
+
+    def exclude_from_weight_decay(self, name:str) -> bool:
+        # Regex to find layer names like
+        # "stem.6.bias", "stem.6.gain", "body.0.skip_gain", 
+        # "body.0.conv0.bias", "body.0.conv0.gain"
+        regex = re.compile('stem.*(bias|gain)|conv.*(bias|gain)|skip_gain')
+        return len(regex.findall(name)) > 0
+
+    def exclude_from_clipping(self, name: str) -> bool:
+        # Last layer should not be clipped
+        return name.startswith('final_fc')
 
 class NFBlock(nn.Module):
     def __init__(self, in_channels:int, out_channels:int, expansion:float=0.5, 
