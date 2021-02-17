@@ -114,8 +114,8 @@ class NFNet(nn.Module):
         if self.drop_rate > 0.:
             self.dropout = nn.Dropout(self.drop_rate)
 
-        self.final_fc = nn.Linear(final_conv_channels, self.num_classes)
-        nn.init.normal_(self.final_fc.weight, 0, 0.01)
+        self.linear = nn.Linear(final_conv_channels, self.num_classes)
+        nn.init.normal_(self.linear.weight, 0, 0.01)
 
     def forward(self, x):
         out = self.stem(x)
@@ -126,7 +126,7 @@ class NFNet(nn.Module):
         if self.training and self.drop_rate > 0.:
             pool = self.dropout(pool)
 
-        return self.final_fc(pool)
+        return self.linear(pool)
 
     def exclude_from_weight_decay(self, name:str) -> bool:
         # Regex to find layer names like
@@ -137,12 +137,12 @@ class NFNet(nn.Module):
 
     def exclude_from_clipping(self, name: str) -> bool:
         # Last layer should not be clipped
-        return name.startswith('final_fc')
+        return name.startswith('linear')
 
 class NFBlock(nn.Module):
     def __init__(self, in_channels:int, out_channels:int, expansion:float=0.5, 
         se_ratio:float=0.5, stride:int=1, beta:float=1.0, alpha:float=0.2, 
-        group_size:int=1, big_width:bool=True, stochdepth_rate:float=None):
+        group_size:int=1, stochdepth_rate:float=None):
 
         super(NFBlock, self).__init__()
 
@@ -154,7 +154,7 @@ class NFBlock(nn.Module):
         self.beta, self.alpha = beta, alpha
         self.group_size = group_size
         
-        self.width = int((self.out_channels if big_width else self.in_channels) * expansion)
+        self.width = int(self.out_channels * expansion)
         self.stride = stride
 
         self.conv0 = WSConv2D(in_channels=self.in_channels, out_channels=self.width, kernel_size=1)
@@ -168,7 +168,7 @@ class NFBlock(nn.Module):
                 self.shortcut_avg_pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0 if self.in_channels==1536 else 1)
             self.conv_shortcut = WSConv2D(self.in_channels, self.out_channels, kernel_size=1)
             
-        self.se = SqueezeExcite(self.out_channels, self.out_channels, se_ratio=self.se_ratio)
+        self.squeeze_excite = SqueezeExcite(self.out_channels, self.out_channels, se_ratio=self.se_ratio)
         self.skip_gain = nn.Parameter(torch.zeros(1))
 
         self.use_stochdepth = stochdepth_rate is not None and stochdepth_rate > 0. and stochdepth_rate < 1.
@@ -190,7 +190,7 @@ class NFBlock(nn.Module):
         out = self.activation(self.conv1(out))
         out = self.activation(self.conv1b(out))
         out = self.conv2(out)
-        out = (self.se(out)*2) * out
+        out = (self.squeeze_excite(out)*2) * out
 
         if self.use_stochdepth:
             out = self.stoch_depth(out)
@@ -213,11 +213,11 @@ class WSConv2D(nn.Conv2d):
 
     def standardized_weights(self):
         # Original code: HWCN
-        mean = torch.mean(self.weight, dim=(1,2,3), keepdims=True)
-        var = torch.var(self.weight, dim=(1,2,3), keepdims=True)
+        mean = torch.mean(self.weight, axis=[1,2,3], keepdims=True)
+        var = torch.var(self.weight, axis=[1,2,3], keepdims=True)
         fan_in = np.prod(self.weight.shape[1:])
-        scale = torch.rsqrt(torch.maximum(var * fan_in, self.eps)) * self.gain
-        return (self.weight - mean) * scale
+        scale = torch.rsqrt(torch.maximum(var * fan_in, self.eps))
+        return (self.weight - mean) * scale * self.gain
         
     def forward(self, x):
         return F.conv2d(
@@ -241,13 +241,13 @@ class SqueezeExcite(nn.Module):
         self.hidden_channels = max(1, int(self.in_channels * self.se_ratio))
         
         self.activation = nn.ReLU(inplace=True)
-        self.fc0 = nn.Linear(self.in_channels, self.hidden_channels)
-        self.fc1 = nn.Linear(self.hidden_channels, self.out_channels)
+        self.linear = nn.Linear(self.in_channels, self.hidden_channels)
+        self.linear_1 = nn.Linear(self.hidden_channels, self.out_channels)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         out = torch.mean(x, (2,3))
-        out = self.fc1(self.activation(self.fc0(out)))
+        out = self.linear_1(self.activation(self.linear(out)))
         out = self.sigmoid(out)
 
         b,c,_,_ = x.size()
