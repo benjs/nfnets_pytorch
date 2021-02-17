@@ -1,3 +1,4 @@
+import pathlib
 from torch.tensor import Tensor
 import yaml
 import argparse
@@ -82,6 +83,20 @@ def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path
             print(f"\rEpoch {epoch+1:04d}/{epochs}\tImg: {step*batch_size:5d}/{len(dataloader.dataset)}\tLoss: {loss.item():8.6f}                 ", 
                 sep=' ', end='', flush=True)
 
+        if not overfit:
+            cp_dir = Path("checkpoints")
+            cp_dir.mkdir(exist_ok=True)
+
+            cp_path = cp_dir / ("checkpoint_epoch" + str(epoch))
+
+            torch.save({
+                'epoch': epoch,
+                'model': model.state_dict(),
+                'optim': optimizer.state_dict(),
+                'loss': loss
+            }, str(cp_path))
+
+            print(f"Saved checkpoint to {str(cp_path)}")
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Train NFNets.')
@@ -98,7 +113,10 @@ if __name__=='__main__':
     with args.config.open() as file:
         config = yaml.safe_load(file)
 
-
+    # Override config.yaml settings with command line settings
+    for arg in vars(args):
+        if getattr(args, arg) is not None and arg in config:
+            config[arg] = getattr(args, arg)
 
     train(
         variant=config['variant'] if args.variant is None else args.variant,
