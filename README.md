@@ -26,7 +26,7 @@ and the models have not been thoroughly tested.
   - [x] Stochastic depth
   - [x] FP16 Operations
 - [x] SGD with unit adaptive gradient clipping (SGD-AGC)
-  - [ ] Exclude certain layers from weight-decay, clipping
+  - [x] Exclude certain layers from weight-decay, clipping
   - [ ] Label smoothing loss from [Szegedy et al.](https://arxiv.org/abs/1512.00567)
 - [x] Training on ImageNet
 - [x] Model overfits on small dataset
