@@ -51,7 +51,7 @@ class NFNet(nn.Module):
 
         self.train_imsize = block_params['train_imsize']
         self.test_imsize = block_params['test_imsize']
-        self.activation = nn.ReLU()
+        self.activation = nn.ReLU(inplace=True)
         self.drop_rate = block_params['drop_rate']
         self.num_classes = num_classes
 
