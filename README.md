@@ -18,6 +18,7 @@ and the models have not been thoroughly tested.
 - [x] Model overfits on small dataset
 - [ ] Tensorboard support + General usability (eval script etc.)
 - [ ] Multi-GPU support
+- [ ] Baseline augmentation
 - [ ] Training on complete dataset and validation to _Baseline + Second Conv_ 
 - [ ] Data augmentation
 - [ ] Model validation to _Baseline + CutMix_ 
