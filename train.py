@@ -46,8 +46,6 @@ def train(config:dict) -> None:
         num_workers=config['num_workers'], 
         pin_memory=config['pin_memory'])
 
-    model.to(device)
-
     if config['scale_lr']:
         learning_rate = config['learning_rate']*config['batch_size']/256
     else:
@@ -55,6 +53,8 @@ def train(config:dict) -> None:
 
     if not config['do_clip']:
         config['clipping'] = None
+
+    model.to(device)
 
     optimizer = optim.SGD_AGC(
         model.parameters(), 
@@ -65,7 +65,7 @@ def train(config:dict) -> None:
         nesterov=config['nesterov']
         )
 
-    ce_loss = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss()
 
     for epoch in range(config['epochs']):
         model.train()
@@ -77,7 +77,7 @@ def train(config:dict) -> None:
             optimizer.zero_grad()
 
             output = model(inputs).type(torch.float32)
-            loss = ce_loss(output, targets)
+            loss = criterion(output, targets)
             loss.backward()
             optimizer.step()
 
@@ -93,7 +93,7 @@ def train(config:dict) -> None:
             cp_dir = Path("checkpoints")
             cp_dir.mkdir(exist_ok=True)
 
-            cp_path = cp_dir / ("checkpoint_epoch" + str(epoch) + ".pth")
+            cp_path = cp_dir / ("checkpoint_epoch" + str(epoch+1) + ".pth")
 
             torch.save({
                 'epoch': epoch,
