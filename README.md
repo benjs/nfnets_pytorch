@@ -24,9 +24,10 @@ and the models have not been thoroughly tested.
   - [x] Scaled weight standardization
   - [x] Squeeze and excite
   - [x] Stochastic depth
-  - [x] FP16 Operations
+  - [ ] FP16 activation
 - [x] SGD with unit adaptive gradient clipping (SGD-AGC)
   - [x] Exclude certain layers from weight-decay, clipping
+  - [ ] FP16 gradients
   - [ ] Label smoothing loss from [Szegedy et al.](https://arxiv.org/abs/1512.00567)
 - [x] Training on ImageNet
 - [x] Model overfits on small dataset
