@@ -51,6 +51,9 @@ def train(config:dict) -> None:
     if not config['do_clip']:
         config['clipping'] = None
 
+    if config['use_fp16']:
+        model.half()
+
     model.to(device)
 
     optimizer = optim.SGD_AGC(
@@ -81,12 +84,13 @@ def train(config:dict) -> None:
         model.train()
 
         for step, data in enumerate(dataloader):
-            inputs = data[0].to(device)
+            inputs = data[0].half().to(device) if config['use_fp16'] else data[0].to(device)
             targets = data[1].to(device)
 
             optimizer.zero_grad()
 
             output = model(inputs).type(torch.float32)
+
             loss = criterion(output, targets)
             loss.backward()
             optimizer.step()
@@ -96,7 +100,7 @@ def train(config:dict) -> None:
 
             print(f"\rEpoch {epoch+1:0{epoch_padding}d}/{config['epochs']}"
                 f"\tImgs: {step*config['batch_size']+config['batch_size']:{batch_padding}d}/{len(dataloader.dataset)}"
-                f"\tLoss: {loss.item():8.6f}",
+                f"\tLoss: {loss.item():8.6f}\t",
             sep=' ', end='', flush=True)
 
         if not config['overfit']:
