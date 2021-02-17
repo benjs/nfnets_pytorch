@@ -24,9 +24,6 @@ def train(config:dict) -> None:
         groups=config['groups'],
         )
 
-    # Use FP16 operations to fasten training
-    model.half()
-
     transforms = Compose([
         Resize((model.train_imsize, model.train_imsize)),
         ToTensor(),
