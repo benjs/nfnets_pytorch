@@ -1,7 +1,6 @@
-import pathlib
-from torch.tensor import Tensor
 import yaml
 import argparse
+import math
 from pathlib import Path
 
 import torch
@@ -14,19 +13,15 @@ import optim
 from model import NFNet
 from dataset import get_dataset
 
-def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path:Path, 
-    learning_rate:float=0.1, device:str='cpu', stochdepth_rate:float=None, alpha:float=0.2,
-    group_size:int=1, se_ratio:float=0.5, scale_lr:bool=True, momentum:float=0.9,
-    weight_decay:float=2e-5, nesterov:bool=True, clipping:float=0.1, num_workers:int=0,
-    overfit:bool=False) -> None:
+def train(config:dict) -> None:
     
     model = NFNet(
-        num_classes=num_classes, 
-        variant=variant, 
-        stochdepth_rate=stochdepth_rate, 
-        alpha=alpha,
-        se_ratio=se_ratio,
-        groups=group_size,
+        num_classes=config['num_classes'], 
+        variant=config['variant'], 
+        stochdepth_rate=config['stochdepth_rate'], 
+        alpha=config['alpha'],
+        se_ratio=config['se_ratio'],
+        groups=config['groups'],
         )
 
     # Use FP16 operations to fasten training
@@ -38,35 +33,41 @@ def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path
         Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
 
-    dataset = get_dataset(path=dataset_path, transforms=transforms)
+    device = config['device']
+    dataset = get_dataset(path=config['dataset'], transforms=transforms)
     
-    if overfit:
-        dataset = Subset(dataset, range(batch_size))
+    if config['overfit']:
+        dataset = Subset(dataset, range(config['batch_size']))
 
     dataloader = DataLoader(
         dataset=dataset, 
-        batch_size=batch_size,
+        batch_size=config['batch_size'],
         shuffle=True,
-        num_workers=num_workers, 
-        pin_memory=True)
+        num_workers=config['num_workers'], 
+        pin_memory=config['pin_memory'])
 
     model.to(device)
 
-    if scale_lr:
-        learning_rate = learning_rate*batch_size/256
+    if config['scale_lr']:
+        learning_rate = config['learning_rate']*config['batch_size']/256
+    else:
+        learning_rate = config['learning_rate']
+
+    if not config['do_clip']:
+        config['clipping'] = None
 
     optimizer = optim.SGD_AGC(
         model.parameters(), 
-        lr=learning_rate*batch_size/256 if scale_lr else learning_rate, 
-        momentum=momentum,
-        clipping=clipping,
-        weight_decay=weight_decay, 
-        nesterov=nesterov
+        lr=learning_rate,
+        momentum=config['momentum'],
+        clipping=config['clipping'],
+        weight_decay=config['weight_decay'], 
+        nesterov=config['nesterov']
         )
 
     ce_loss = nn.CrossEntropyLoss()
 
-    for epoch in range(epochs):
+    for epoch in range(config['epochs']):
         model.train()
 
         for step, data in enumerate(dataloader):
@@ -80,14 +81,19 @@ def train(variant:str, num_classes:int, batch_size:int, epochs:int, dataset_path
             loss.backward()
             optimizer.step()
 
-            print(f"\rEpoch {epoch+1:04d}/{epochs}\tImg: {step*batch_size:5d}/{len(dataloader.dataset)}\tLoss: {loss.item():8.6f}                 ", 
-                sep=' ', end='', flush=True)
+            epoch_padding = int(math.log10(config['epochs']) + 1)
+            batch_padding = int(math.log10(len(dataloader.dataset)) + 1)
 
-        if not overfit:
+            print(f"\rEpoch {epoch+1:0{epoch_padding}d}/{config['epochs']}"
+                f"\tImgs: {step*config['batch_size']+config['batch_size']:{batch_padding}d}/{len(dataloader.dataset)}"
+                f"\tLoss: {loss.item():8.6f}",
+            sep=' ', end='', flush=True)
+
+        if not config['overfit']:
             cp_dir = Path("checkpoints")
             cp_dir.mkdir(exist_ok=True)
 
-            cp_path = cp_dir / ("checkpoint_epoch" + str(epoch))
+            cp_path = cp_dir / ("checkpoint_epoch" + str(epoch) + ".pth")
 
             torch.save({
                 'epoch': epoch,
@@ -118,22 +124,4 @@ if __name__=='__main__':
         if getattr(args, arg) is not None and arg in config:
             config[arg] = getattr(args, arg)
 
-    train(
-        variant=config['variant'] if args.variant is None else args.variant,
-        dataset_path=config['dataset'],
-        num_classes=config['num_classes'], 
-        batch_size=config['batch_size'] if args.batch_size is None else args.batch_size,
-        epochs=config['epochs'],
-        learning_rate=config['learning_rate'],
-        device=config['device'],
-        alpha=config['alpha'],
-        stochdepth_rate=config['stochdepth_rate'],
-        se_ratio=config['se_ratio'],
-        group_size=config['groups'],
-        momentum=config['momentum'],
-        weight_decay=config['weight_decay'],
-        nesterov=config['nesterov'],
-        clipping=config['clipping'],
-        num_workers=config['num_workers'],
-        overfit=args.overfit
-        )
+    train(config=config)

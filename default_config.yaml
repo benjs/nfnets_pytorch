@@ -15,11 +15,15 @@ num_workers: 8                # Number of workers in dataloader
 pin_memory: False             # This can fasten or slow down data loading depending on your hardware
 
 # Training
-batch_size: 128        # Batch size
+batch_size: 128       # Batch size
 epochs: 5000          # Number of epochs
+overfit: False        # Train on one batch size only
+
 learning_rate: 0.1    # Learning rate
 scale_lr: True        # Scale learning rate with batch size. lr = lr*batch_size/256
-momentum: 0.9
-weight_decay: 0.00002 # 
-nesterov: True
-clipping: 0.1
+momentum: 0.9         # Contribution of earlier gradient to gradient update
+weight_decay: 0.00002 # Factor with which weights are added to gradient
+nesterov: True        # Enable nesterov correction
+
+do_clip: True         # Enable adaptive gradient clipping
+clipping: 0.1         # Adaptive gradient clipping parameter
