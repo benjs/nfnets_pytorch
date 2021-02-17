@@ -1,4 +1,3 @@
-from typing import Callable
 import torch
 from torch.optim import Optimizer
 

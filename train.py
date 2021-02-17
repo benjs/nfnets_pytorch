@@ -81,7 +81,7 @@ def train(config:dict) -> None:
         model.train()
 
         for step, data in enumerate(dataloader):
-            inputs = data[0].half().to(device)
+            inputs = data[0].to(device)
             targets = data[1].to(device)
 
             optimizer.zero_grad()
