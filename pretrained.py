@@ -6,7 +6,7 @@ from pathlib import Path
 
 from model import NFNet
 
-def from_pretrained_haiku(path:Path, groups:int=1, stochdepth_rate:float=0, alpha:float=0.2) -> NFNet:
+def from_pretrained_haiku(path:Path, stochdepth_rate:float=0, alpha:float=0.2) -> NFNet:
     with path.open('rb') as f:
         params = dill.load(f)
 
