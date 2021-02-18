@@ -55,15 +55,7 @@ class NFNet(nn.Module):
         self.drop_rate = block_params['drop_rate']
         self.num_classes = num_classes
 
-        self.stem = nn.Sequential(
-            WSConv2D(in_channels=3, out_channels=16, kernel_size=3, stride=2),
-            self.activation,
-            WSConv2D(in_channels=16, out_channels=32, kernel_size=3, stride=1),
-            self.activation,
-            WSConv2D(in_channels=32, out_channels=64, kernel_size=3, stride=1),
-            self.activation,
-            WSConv2D(in_channels=64, out_channels=128, kernel_size=3, stride=2)
-        )
+        self.stem = Stem()
 
         num_blocks, index = sum(block_params['depth']), 0
 
@@ -138,6 +130,23 @@ class NFNet(nn.Module):
     def exclude_from_clipping(self, name: str) -> bool:
         # Last layer should not be clipped
         return name.startswith('linear')
+
+class Stem(nn.Module):
+    def __init__(self):
+        super(Stem, self).__init__()
+        
+        self.activation = nn.ReLU(inplace=True)
+        self.conv0 = WSConv2D(in_channels=3, out_channels=16, kernel_size=3, stride=2)
+        self.conv1 = WSConv2D(in_channels=16, out_channels=32, kernel_size=3, stride=1)
+        self.conv2 = WSConv2D(in_channels=32, out_channels=64, kernel_size=3, stride=1)
+        self.conv3 = WSConv2D(in_channels=64, out_channels=128, kernel_size=3, stride=2)
+    
+    def forward(self, x):
+        out = self.activation(self.conv0(x))
+        out = self.activation(self.conv1(out))
+        out = self.activation(self.conv2(out))
+        out = self.conv3(out)
+        return out
 
 class NFBlock(nn.Module):
     def __init__(self, in_channels:int, out_channels:int, expansion:float=0.5, 
