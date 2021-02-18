@@ -22,27 +22,23 @@ python3 train.py --config default_config.yaml --pretrained pretrained/F0_haiku.n
 
 
 ## Development status
-Generally, the development is in a very early stage
-and the models have not been thoroughly tested.
 
 - [x] NFNet Models
   - [x] F0-F7
   - [x] Scaled weight standardization
   - [x] Squeeze and excite
   - [x] Stochastic depth
-  - [ ] FP16 activation
+  - [ ] FP16 activations
 - [x] SGD with unit adaptive gradient clipping (SGD-AGC)
   - [x] Exclude certain layers from weight-decay, clipping
   - [ ] FP16 gradients
   - [ ] Label smoothing loss from [Szegedy et al.](https://arxiv.org/abs/1512.00567)
 - [x] Training on ImageNet
 - [x] Model overfits on small dataset
-- [ ] Tensorboard support + General usability (eval script etc.)
+- [x] Pre-trained weights 
+- [ ] Tensorboard support + general usability (eval script etc.)
 - [ ] Multi-GPU support
-- [ ] Baseline augmentation
-- [ ] Training on complete dataset and validation to _Baseline + Second Conv_ 
 - [ ] Data augmentation
 - [ ] Model validation to _Baseline + CutMix_ 
-- [ ] Pre-trained weights 
 - [ ] Training on custom data
 - [ ] Signal propagation plots (from [first paper](https://arxiv.org/abs/2101.08692))
