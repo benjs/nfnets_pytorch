@@ -180,7 +180,7 @@ class NFBlock(nn.Module):
             self.conv_shortcut = WSConv2D(self.in_channels, self.out_channels, kernel_size=1)
             
         self.squeeze_excite = SqueezeExcite(self.out_channels, self.out_channels, se_ratio=self.se_ratio)
-        self.skip_gain = nn.Parameter(torch.zeros(1))
+        self.skip_gain = nn.Parameter(torch.zeros(()))
 
         self.use_stochdepth = stochdepth_rate is not None and stochdepth_rate > 0. and stochdepth_rate < 1.
         if self.use_stochdepth:
