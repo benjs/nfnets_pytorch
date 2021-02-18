@@ -20,8 +20,7 @@ def train(config:dict) -> None:
         variant=config['variant'], 
         stochdepth_rate=config['stochdepth_rate'], 
         alpha=config['alpha'],
-        se_ratio=config['se_ratio'],
-        groups=config['groups'],
+            se_ratio=config['se_ratio']
         )
 
     transforms = Compose([

@@ -41,7 +41,7 @@ nfnet_params = {
 
 class NFNet(nn.Module):
     def __init__(self, num_classes:int, variant:str='F0', stochdepth_rate:float=None, 
-        alpha:float=0.2, se_ratio:float=0.5, groups:int=1):
+        alpha:float=0.2, se_ratio:float=0.5):
         super(NFNet, self).__init__()
 
         if not variant in nfnet_params:
@@ -67,7 +67,7 @@ class NFNet(nn.Module):
             block_params['width'],
             block_params['depth'],
             [0.5] * 4, # bottleneck pattern
-            [groups] * 4, # group pattern. Original groups [128] * 4
+            [128] * 4, # group pattern. Original groups [128] * 4
             [True] * 4, # big width,
             [1, 2, 2, 2] # stride pattern
         )
@@ -163,12 +163,14 @@ class NFBlock(nn.Module):
         self.beta, self.alpha = beta, alpha
         self.group_size = group_size
         
-        self.width = int(self.out_channels * expansion)
+        width = int(self.out_channels * expansion)
+        self.groups = width // group_size
+        self.width = group_size * self.groups
         self.stride = stride
 
         self.conv0 = WSConv2D(in_channels=self.in_channels, out_channels=self.width, kernel_size=1)
-        self.conv1 = WSConv2D(in_channels=self.width, out_channels=self.width, kernel_size=3, stride=stride, padding=1, groups=group_size)
-        self.conv1b = WSConv2D(in_channels=self.width, out_channels=self.width, kernel_size=3, stride=1, padding=1, groups=group_size)
+        self.conv1 = WSConv2D(in_channels=self.width, out_channels=self.width, kernel_size=3, stride=stride, padding=1, groups=self.groups)
+        self.conv1b = WSConv2D(in_channels=self.width, out_channels=self.width, kernel_size=3, stride=1, padding=1, groups=self.groups)
         self.conv2 = WSConv2D(in_channels=self.width, out_channels=self.out_channels, kernel_size=1)
         
         self.use_projection = self.stride > 1 or self.in_channels != self.out_channels
