@@ -10,10 +10,16 @@ pip3 install -r requirements.txt
 Go to the [config file](default_config.yaml) and enter the path to your ImageNet directory (downloadable after asking for access from [image-net.org](http://www.image-net.org/challenges/LSVRC/2012/downloads.php#images)).
 The directory needs to contain the unpacked ImageNet archives and the dev_kit.tar file.
 
-Start training with
+Start normal training with
 ```
 python3 train.py --config default_config.yaml
 ```
+
+Start training with pretrained weights through
+```
+python3 train.py --config default_config.yaml --pretrained pretrained/F0_haiku.npz
+```
+
 
 ## Development status
 Generally, the development is in a very early stage
