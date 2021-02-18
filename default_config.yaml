@@ -7,8 +7,8 @@ num_classes: 1000     # Number of classes
 stochdepth_rate: 0.25 # 0-1, the probability that a layer is dropped during one step
 alpha: 0.2            # Scaling factor at the end of each block
 se_ratio: 0.5         # Squeeze-Excite expansion ratio
-groups: 128           # Number of groups in convolution
-use_fp16: True        # Use 16bit floats, which drastically lowers memory footprint
+use_fp16: False       # Use 16bit floats, which lowers memory footprint. This currently sets
+                      # the complete model to FP16 (will be changed to match FP16 ops from paper)
 
 # Dataset
 dataset: '/media/benjs/ext/'  # Dataset root directory
@@ -16,7 +16,7 @@ num_workers: 8                # Number of workers in dataloader
 pin_memory: False             # This can fasten or slow down data loading depending on your hardware
 
 # Training
-batch_size: 128       # Batch size
+batch_size: 64        # Batch size
 epochs: 360           # Number of epochs
 overfit: False        # Train on one batch size only
 

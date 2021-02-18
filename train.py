@@ -2,6 +2,7 @@ import yaml
 import argparse
 import math
 from pathlib import Path
+from pretrained import from_pretrained_haiku
 
 import torch
 import torch.nn as nn
@@ -15,13 +16,20 @@ from dataset import get_dataset
 
 def train(config:dict) -> None:
     
-    model = NFNet(
-        num_classes=config['num_classes'], 
-        variant=config['variant'], 
-        stochdepth_rate=config['stochdepth_rate'], 
-        alpha=config['alpha'],
+    if config['pretrained'] is not None:
+        model = from_pretrained_haiku(
+            config['pretrained'], 
+            stochdepth_rate=config['stochdepth_rate'],
+            alpha=config['alpha']
+            )
+    else:
+        model = NFNet(
+            num_classes=config['num_classes'], 
+            variant=config['variant'], 
+            stochdepth_rate=config['stochdepth_rate'], 
+            alpha=config['alpha'],
             se_ratio=config['se_ratio']
-        )
+            )
 
     transforms = Compose([
         Resize((model.train_imsize, model.train_imsize)),
@@ -123,6 +131,7 @@ if __name__=='__main__':
     parser.add_argument('--batch-size', type=int, help='Training batch size', default=None)
     parser.add_argument('--overfit', const=True, default=False, nargs='?', help='Crop the dataset to the batch size and force model to (hopefully) overfit')
     parser.add_argument('--variant', type=str, help='NFNet variant to train', default=None)
+    parser.add_argument('--pretrained', type=Path, help='Path to pre-trained weights in haiku format', default=None)
     args = parser.parse_args()
     
     if not args.config.exists():
@@ -136,5 +145,7 @@ if __name__=='__main__':
     for arg in vars(args):
         if getattr(args, arg) is not None and arg in config:
             config[arg] = getattr(args, arg)
+
+    config['pretrained'] = args.pretrained
 
     train(config=config)
