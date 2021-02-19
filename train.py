@@ -1,18 +1,23 @@
 import yaml
 import argparse
 import math
+import PIL
+import yaml
 from pathlib import Path
-from pretrained import from_pretrained_haiku
+from PIL.Image import Image
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import Subset
 from torch.utils.data.dataloader import DataLoader
-from torchvision.transforms.transforms import Compose, Normalize, Resize, ToTensor
+from torch.utils.tensorboard import SummaryWriter
+from torchvision.transforms.transforms import Compose, Normalize, Resize, ToTensor, RandomHorizontalFlip, RandomCrop
 
-import optim
-from model import NFNet
 from dataset import get_dataset
+from model import NFNet
+from optim import SGD_AGC
+from pretrained import from_pretrained_haiku
 
 def train(config:dict) -> None:
     
@@ -64,7 +69,7 @@ def train(config:dict) -> None:
 
     model.to(device)
 
-    optimizer = optim.SGD_AGC(
+    optimizer = SGD_AGC(
         # The optimizer needs all parameter names 
         # to filter them by hand later
         named_params=model.named_parameters(), 
