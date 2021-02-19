@@ -1,6 +1,7 @@
 import re
 import dill
 import torch
+import argparse
 import numpy as np
 from pathlib import Path
 
@@ -59,7 +60,7 @@ def from_pretrained_haiku(path:Path, stochdepth_rate:float=0, alpha:float=0.2) -
                 param = np.expand_dims(param, axis=(1,2,3))
             
             if "conv" in l:
-                state_dict[f"{l}.eps"] = torch.tensor(1e-4)
+                state_dict[f"{l}.eps"] = torch.tensor(1e-4, requires_grad=False)
 
             with torch.no_grad():
                 t = torch.from_numpy(param)
@@ -72,6 +73,18 @@ def from_pretrained_haiku(path:Path, stochdepth_rate:float=0, alpha:float=0.2) -
                 state_dict[complete_name] = t
 
     model.load_state_dict(state_dict, strict=True)
-    print(model.state_dict()['final_conv.bias'])
     return model
 
+if __name__=='__main__':
+    parser = argparse.ArgumentParser(description='Load haiku weights and convert them to .pth file.')  
+    parser.add_argument('--pretrained', type=Path, help='Path to pre-trained weights in haiku format')
+    args = parser.parse_args()
+
+    if not args.pretrained.exists():
+        raise FileNotFoundError(f"Could not find file {args.pretrained.absolute()}")
+
+    model = from_pretrained_haiku(args.pretrained)
+    
+    torch.save({
+        'model': model.state_dict()
+    }, str(args.pretrained.with_suffix('.pth')))
