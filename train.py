@@ -32,7 +32,8 @@ def train(config:dict) -> None:
             )
 
     transforms = Compose([
-        Resize((model.train_imsize, model.train_imsize)),
+        RandomHorizontalFlip(),
+        Resize((model.train_imsize, model.train_imsize), PIL.Image.BICUBIC),
         ToTensor(),
         Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
