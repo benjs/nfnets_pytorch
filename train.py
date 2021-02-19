@@ -41,7 +41,7 @@ def train(config:dict) -> None:
     dataset = get_dataset(path=config['dataset'], transforms=transforms)
     
     if config['overfit']:
-        dataset = Subset(dataset, range(config['batch_size']))
+        dataset = Subset(dataset, [i*50 for i in range(0,1000)] )
 
     dataloader = DataLoader(
         dataset=dataset, 
