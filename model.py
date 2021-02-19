@@ -220,7 +220,7 @@ class WSConv2D(nn.Conv2d):
         
         nn.init.xavier_normal_(self.weight)
         self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
-        self.eps = nn.Parameter(torch.tensor(1e-4), requires_grad=False)
+        self.register_buffer('eps', torch.tensor(1e-4, requires_grad=False), persistent=False)
 
     def standardized_weights(self):
         # Original code: HWCN
