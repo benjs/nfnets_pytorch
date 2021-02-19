@@ -87,8 +87,22 @@ def train(config:dict) -> None:
 
     criterion = nn.CrossEntropyLoss()
 
+    runs_dir = Path('runs')
+    run_index = 0
+    while (runs_dir / ('run' + str(run_index))).exists():
+        run_index += 1
+    runs_dir = runs_dir / ('run' + str(run_index))
+    runs_dir.mkdir(exist_ok=False, parents=True)
+    checkpoints_dir = runs_dir / 'checkpoints'
+    checkpoints_dir.mkdir()
+
+    writer = SummaryWriter(str(runs_dir))
+
     for epoch in range(config['epochs']):
         model.train()
+        running_loss = 0.0
+        processed_imgs = 0
+        correct_labels = 0
 
         for step, data in enumerate(dataloader):
             inputs = data[0].half().to(device) if config['use_fp16'] else data[0].to(device)
@@ -102,19 +116,26 @@ def train(config:dict) -> None:
             loss.backward()
             optimizer.step()
 
+            running_loss += loss.item()
+            processed_imgs += targets.size(0)
+            _, predicted = torch.max(output, 1)
+            correct_labels += (predicted == targets).sum().item()
+
             epoch_padding = int(math.log10(config['epochs']) + 1)
             batch_padding = int(math.log10(len(dataloader.dataset)) + 1)
-
             print(f"\rEpoch {epoch+1:0{epoch_padding}d}/{config['epochs']}"
-                f"\tImgs: {step*config['batch_size']+config['batch_size']:{batch_padding}d}/{len(dataloader.dataset)}"
-                f"\tLoss: {loss.item():8.6f}\t",
+                f"\tImg {processed_imgs:{batch_padding}d}/{len(dataloader.dataset)}"
+                f"\tLoss {running_loss / (step+1):6.4f}"
+                f"\tAcc {100.0*correct_labels/processed_imgs:5.3f}%\t",
             sep=' ', end='', flush=True)
 
-        if not config['overfit']:
-            cp_dir = Path("checkpoints")
-            cp_dir.mkdir(exist_ok=True)
+        global_step = epoch*len(dataloader) + step
+        writer.add_scalar('training/loss', running_loss/(step+1), global_step)
+        writer.add_scalar('training/accuracy', 100.0*correct_labels/processed_imgs, global_step)
 
-            cp_path = cp_dir / ("checkpoint_epoch" + str(epoch+1) + ".pth")
+        #if not config['overfit']:
+        if epoch % 10 == 0:
+            cp_path = checkpoints_dir / ("checkpoint_epoch" + str(epoch+1) + ".pth")
 
             torch.save({
                 'epoch': epoch,
