@@ -59,8 +59,8 @@ def from_pretrained_haiku(path:Path, stochdepth_rate:float=0, alpha:float=0.2) -
             if p == 'gain':
                 param = np.expand_dims(param, axis=(1,2,3))
             
-            if "conv" in l:
-                state_dict[f"{l}.eps"] = torch.tensor(1e-4, requires_grad=False)
+            #if "conv" in l:
+            #    state_dict[f"{l}.eps"] = torch.tensor(1e-4, requires_grad=False)
 
             with torch.no_grad():
                 t = torch.from_numpy(param)
