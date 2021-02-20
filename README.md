@@ -16,7 +16,7 @@ git clone https://github.com/benjs/nfnets_pytorch.git
 pip3 install -r requirements.txt
 ```
 
-Download pretrained weights from [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/) and place them in pretrained folder.
+Download pretrained weights from the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/) and place them in the pretrained folder.
 
 ```python
 from pretrained import pretrained_nfnet
