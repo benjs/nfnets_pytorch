@@ -39,9 +39,35 @@ nfnet_params = {
         'RA_level': '415', 'drop_rate': 0.5},
 }
 
+# These extra constant values ensure that the activations
+# are variance preserving
+class VPGELU(nn.Module):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        return F.gelu(input) * 1.7015043497085571
+
+class VPReLU(nn.Module):
+    __constants__ = ['inplace']
+    inplace: bool
+
+    def __init__(self, inplace: bool = False):
+        super(VPReLU, self).__init__()
+        self.inplace = inplace
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        return F.relu(input, inplace=self.inplace) * 1.7139588594436646
+
+    def extra_repr(self) -> str:
+        inplace_str = 'inplace=True' if self.inplace else ''
+        return inplace_str
+
+activations_dict = {
+    'gelu': VPGELU(),
+    'relu': VPReLU(inplace=True)
+}
+
 class NFNet(nn.Module):
     def __init__(self, num_classes:int, variant:str='F0', stochdepth_rate:float=None, 
-        alpha:float=0.2, se_ratio:float=0.5):
+        alpha:float=0.2, se_ratio:float=0.5, activation:str='gelu'):
         super(NFNet, self).__init__()
 
         if not variant in nfnet_params:
@@ -51,11 +77,11 @@ class NFNet(nn.Module):
 
         self.train_imsize = block_params['train_imsize']
         self.test_imsize = block_params['test_imsize']
-        self.activation = nn.ReLU(inplace=True)
+        self.activation = activations_dict[activation]
         self.drop_rate = block_params['drop_rate']
         self.num_classes = num_classes
 
-        self.stem = Stem()
+        self.stem = Stem(activation=activation)
 
         num_blocks, index = sum(block_params['depth']), 0
 
@@ -87,7 +113,8 @@ class NFNet(nn.Module):
                     beta=beta,
                     se_ratio=se_ratio,
                     group_size=group_size,
-                    stochdepth_rate=block_sd_rate))
+                    stochdepth_rate=block_sd_rate,
+                    activation=activation))
 
                 in_channels = out_channels
                 index += 1
@@ -132,10 +159,10 @@ class NFNet(nn.Module):
         return name.startswith('linear')
 
 class Stem(nn.Module):
-    def __init__(self):
+    def __init__(self, activation:str='gelu'):
         super(Stem, self).__init__()
         
-        self.activation = nn.ReLU(inplace=True)
+        self.activation = activations_dict[activation]
         self.conv0 = WSConv2D(in_channels=3, out_channels=16, kernel_size=3, stride=2)
         self.conv1 = WSConv2D(in_channels=16, out_channels=32, kernel_size=3, stride=1)
         self.conv2 = WSConv2D(in_channels=32, out_channels=64, kernel_size=3, stride=1)
@@ -151,7 +178,7 @@ class Stem(nn.Module):
 class NFBlock(nn.Module):
     def __init__(self, in_channels:int, out_channels:int, expansion:float=0.5, 
         se_ratio:float=0.5, stride:int=1, beta:float=1.0, alpha:float=0.2, 
-        group_size:int=1, stochdepth_rate:float=None):
+        group_size:int=1, stochdepth_rate:float=None, activation:str='gelu'):
 
         super(NFBlock, self).__init__()
 
@@ -159,7 +186,7 @@ class NFBlock(nn.Module):
         self.out_channels = out_channels
         self.expansion = expansion
         self.se_ratio = se_ratio
-        self.activation = nn.ReLU(inplace=True)
+        self.activation = activations_dict[activation]
         self.beta, self.alpha = beta, alpha
         self.group_size = group_size
         
@@ -179,7 +206,7 @@ class NFBlock(nn.Module):
                 self.shortcut_avg_pool = nn.AvgPool2d(kernel_size=2, stride=2, padding=0 if self.in_channels==1536 else 1)
             self.conv_shortcut = WSConv2D(self.in_channels, self.out_channels, kernel_size=1)
             
-        self.squeeze_excite = SqueezeExcite(self.out_channels, self.out_channels, se_ratio=self.se_ratio)
+        self.squeeze_excite = SqueezeExcite(self.out_channels, self.out_channels, se_ratio=self.se_ratio, activation=activation)
         self.skip_gain = nn.Parameter(torch.zeros(()))
 
         self.use_stochdepth = stochdepth_rate is not None and stochdepth_rate > 0. and stochdepth_rate < 1.
@@ -242,7 +269,7 @@ class WSConv2D(nn.Conv2d):
         )
 
 class SqueezeExcite(nn.Module):
-    def __init__(self, in_channels:int, out_channels:int, se_ratio:float=0.5):
+    def __init__(self, in_channels:int, out_channels:int, se_ratio:float=0.5, activation:str='gelu'):
         super(SqueezeExcite, self).__init__()
 
         self.in_channels = in_channels
@@ -251,7 +278,7 @@ class SqueezeExcite(nn.Module):
 
         self.hidden_channels = max(1, int(self.in_channels * self.se_ratio))
         
-        self.activation = nn.ReLU(inplace=True)
+        self.activation = activations_dict[activation]
         self.linear = nn.Linear(self.in_channels, self.hidden_channels)
         self.linear_1 = nn.Linear(self.hidden_channels, self.out_channels)
         self.sigmoid = nn.Sigmoid()
