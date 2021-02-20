@@ -7,7 +7,7 @@ from pathlib import Path
 
 from model import NFNet
 
-def from_pretrained_haiku(path:Path, stochdepth_rate:float=0, alpha:float=0.2) -> NFNet:
+def pretrained_nfnet(path:Path, stochdepth_rate:float=0, alpha:float=0.2, activation:str='gelu') -> NFNet:
     with path.open('rb') as f:
         params = dill.load(f)
 
@@ -29,7 +29,8 @@ def from_pretrained_haiku(path:Path, stochdepth_rate:float=0, alpha:float=0.2) -
         num_classes=1000, 
         alpha=alpha,
         stochdepth_rate=stochdepth_rate,
-        se_ratio=0.5)
+        se_ratio=0.5,
+        activation=activation)
 
     state_dict = {}
 
