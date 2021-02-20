@@ -3,7 +3,8 @@ device: 'cuda:0' # or 'cpu'
 
 # Model
 variant: 'F0'         # F0 - F7
-num_classes: 1000     # Number of classes 
+num_classes: 1000     # Number of classes
+activation: 'gelu'    # or 'relu'
 stochdepth_rate: 0.25 # 0-1, the probability that a layer is dropped during one step
 alpha: 0.2            # Scaling factor at the end of each block
 se_ratio: 0.5         # Squeeze-Excite expansion ratio

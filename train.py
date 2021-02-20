@@ -17,15 +17,16 @@ from torchvision.transforms.transforms import Compose, Normalize, Resize, ToTens
 from dataset import get_dataset
 from model import NFNet
 from optim import SGD_AGC
-from pretrained import from_pretrained_haiku
+from pretrained import pretrained_nfnet
 
 def train(config:dict) -> None:
     
     if config['pretrained'] is not None:
-        model = from_pretrained_haiku(
-            config['pretrained'], 
+        model = pretrained_nfnet(
+            path=config['pretrained'], 
             stochdepth_rate=config['stochdepth_rate'],
-            alpha=config['alpha']
+            alpha=config['alpha'],
+            activation=config['activation']
             )
     else:
         model = NFNet(
@@ -33,7 +34,8 @@ def train(config:dict) -> None:
             variant=config['variant'], 
             stochdepth_rate=config['stochdepth_rate'], 
             alpha=config['alpha'],
-            se_ratio=config['se_ratio']
+            se_ratio=config['se_ratio'],
+            activation=config['activation']
             )
 
     transforms = Compose([
