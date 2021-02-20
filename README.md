@@ -1,14 +1,14 @@
 # NFNet Pytorch Implementation
 
-This repo offers pretrained NFNet models F0-F5 with high ImageNet accuracy.
+This repo offers pretrained NFNet models F0-F5 with high ImageNet accuracy from the paper High-Performance Large-Scale Image Recognition Without Normalization.
 The pretrained weights are converted from the official repository.
+ 
+| NFNet  | F0  | F1  | F2  | F3  | F4  | F5  | F6+SAM  |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|  Top-1 accuracy Brock et al. | 83.6 | 84.7 | 85.1 | 85.7 | 85.9 | 86.0 | 86.5 |
+|  Top-1 accuracy this implementation | 82.82 | 84.63 | 84.90 | TBD | TBD | TBD | TBD |
 
-| NFNet |  F0  |  F1  |  F2  |  F3  |  F4  |  F5  | F6+SAM |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-| Top-1 accuracy Brock et al. | 83.6 | 84.7 | 85.1 | 85.7 | 85.9 | 86.0 | 86.5 |
-| Top-1 accuracy this implementation | 82.82 | 84.63 | 84.90 | TBD | TBD | TBD | TBD |
-
-All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171): High-Performance Large-Scale Image Recognition Without Normalization. This repo is heavily inspired by their JAX implementation in the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/). Visit their repo for citing.
+All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171). This repo is heavily inspired by their JAX implementation in the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/). Visit their repo for citing.
 
 ## Get started
 ```
