@@ -7,7 +7,7 @@ from pathlib import Path
 
 from model import NFNet
 
-def pretrained_nfnet(path, stochdepth_rate:float=0, alpha:float=0.2, activation:str='gelu') -> NFNet:
+def pretrained_nfnet(path, stochdepth_rate:float=0.5, alpha:float=0.2, activation:str='gelu') -> NFNet:
     if isinstance(path, str):
         path = Path(path)
     
