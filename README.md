@@ -1,6 +1,6 @@
 # NFNet Pytorch Implementation
 
-This repo offers pretrained NFNet models F0-F5 with high ImageNet accuracy from the paper High-Performance Large-Scale Image Recognition Without Normalization.
+This repo contains pretrained NFNet models F0-F5 with high ImageNet accuracy from the paper *High-Performance Large-Scale Image Recognition Without Normalization*.
 The pretrained weights are converted from the official repository.
  
 | NFNet  | F0  | F1  | F2  | F3  | F4  | F5  | F6+SAM  |
