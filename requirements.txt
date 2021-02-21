@@ -1,6 +1,9 @@
 --find-links https://download.pytorch.org/whl/torch_stable.html
 
 dill
+git+https://github.com/deepmind/dm-haiku
+jax
+jaxlib
 matplotlib
 numpy
 pillow-simd
