@@ -2,8 +2,10 @@
 
 dill
 matplotlib
+numpy
+pillow-simd
 pyyaml
 requests
 tensorboard
-torch>=1.7.1
-torchvision>=0.8.2
+torch==1.7.1+cu110
+torchvision==0.8.2+cu110
