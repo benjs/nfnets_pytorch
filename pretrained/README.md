@@ -6,4 +6,6 @@ Then start training with
 python3 train.py --pretrained pretrained/F0_haiku.npz
 ```
 
-The large model F6+SAM is currently not supported.
+or evaluation with 
+```
+python3 eval.py --pretrained pretrained/F0_haiku.npz --dataset /path/to/imagenet/val/
