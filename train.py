@@ -1,12 +1,14 @@
-import yaml
 import argparse
 import math
 import PIL
+import time
 import yaml
 from pathlib import Path
 from PIL.Image import Image
 
+import matplotlib.pyplot as plt
 import torch
+import torch.cuda.amp as amp
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Subset
@@ -20,6 +22,11 @@ from optim import SGD_AGC
 from pretrained import pretrained_nfnet
 
 def train(config:dict) -> None:
+    if config['device'].startswith('cuda'):
+        if torch.cuda.is_available():
+            print(f"Using CUDA{torch.version.cuda} with cuDNN{torch.backends.cudnn.version()}")
+        else:
+            raise ValueError("You specified to use cuda device, but cuda is not available.")
     
     if config['pretrained'] is not None:
         model = pretrained_nfnet(
@@ -69,7 +76,7 @@ def train(config:dict) -> None:
     if config['use_fp16']:
         model.half()
 
-    model.to(device)
+    model.to(device) # "memory_format=torch.channels_last" TBD
 
     optimizer = SGD_AGC(
         # The optimizer needs all parameter names 
@@ -105,12 +112,14 @@ def train(config:dict) -> None:
     checkpoints_dir.mkdir()
 
     writer = SummaryWriter(str(runs_dir))
+    scaler = amp.GradScaler()
 
     for epoch in range(config['epochs']):
         model.train()
         running_loss = 0.0
         processed_imgs = 0
         correct_labels = 0
+        epoch_time = time.time()
 
         for step, data in enumerate(dataloader):
             inputs = data[0].half().to(device) if config['use_fp16'] else data[0].to(device)
@@ -118,11 +127,15 @@ def train(config:dict) -> None:
 
             optimizer.zero_grad()
 
-            output = model(inputs).type(torch.float32)
-
+            with amp.autocast(enabled=config['amp']):
+                output = model(inputs)
             loss = criterion(output, targets)
-            loss.backward()
-            optimizer.step()
+            
+            # Gradient scaling
+            # https://www.youtube.com/watch?v=OqCrNkjN_PM
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
             running_loss += loss.item()
             processed_imgs += targets.size(0)
@@ -137,12 +150,15 @@ def train(config:dict) -> None:
                 f"\tAcc {100.0*correct_labels/processed_imgs:5.3f}%\t",
             sep=' ', end='', flush=True)
 
+        elapsed = time.time() - epoch_time
+        print (f"({elapsed:.3f}s, {elapsed/len(dataloader):.3}s/step, {elapsed/len(dataset):.3}s/img)")
+
         global_step = epoch*len(dataloader) + step
         writer.add_scalar('training/loss', running_loss/(step+1), global_step)
         writer.add_scalar('training/accuracy', 100.0*correct_labels/processed_imgs, global_step)
 
         #if not config['overfit']:
-        if epoch % 10 == 0:
+        if epoch % 10 == 0 and epoch != 0:
             cp_path = checkpoints_dir / ("checkpoint_epoch" + str(epoch+1) + ".pth")
 
             torch.save({

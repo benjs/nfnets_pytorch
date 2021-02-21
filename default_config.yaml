@@ -1,5 +1,6 @@
 # This file contains the default train settings
-device: 'cuda:0' # or 'cpu'
+device: 'cuda:0'  # or 'cpu'
+amp: False        # Enable automatic mixed precision
 
 # Model
 variant: 'F0'         # F0 - F7
@@ -14,7 +15,7 @@ use_fp16: False       # Use 16bit floats, which lowers memory footprint. This cu
 # Dataset
 dataset: '/media/benjs/ext/'  # Dataset root directory
 num_workers: 8                # Number of workers in dataloader
-pin_memory: False             # This can fasten or slow down data loading depending on your hardware
+pin_memory: True             # This can fasten or slow down data loading depending on your hardware
 
 # Training
 batch_size: 64        # Batch size
