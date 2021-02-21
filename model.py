@@ -94,11 +94,10 @@ class NFNet(nn.Module):
             block_params['depth'],
             [0.5] * 4, # bottleneck pattern
             [128] * 4, # group pattern. Original groups [128] * 4
-            [True] * 4, # big width,
             [1, 2, 2, 2] # stride pattern
         )
 
-        for (block_width, stage_depth, expand_ratio, group_size, big_width, stride) in block_args:
+        for (block_width, stage_depth, expand_ratio, group_size, stride) in block_args:
             for block_index in range(stage_depth):
                 beta = 1. / expected_std
 
@@ -248,13 +247,13 @@ class WSConv2D(nn.Conv2d):
         nn.init.xavier_normal_(self.weight)
         self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
         self.register_buffer('eps', torch.tensor(1e-4, requires_grad=False), persistent=False)
+        self.register_buffer('fan_in', torch.tensor(np.prod(self.weight.shape[1:]), requires_grad=False).type_as(self.weight), persistent=False)
 
     def standardized_weights(self):
         # Original code: HWCN
         mean = torch.mean(self.weight, axis=[1,2,3], keepdims=True)
         var = torch.var(self.weight, axis=[1,2,3], keepdims=True)
-        fan_in = np.prod(self.weight.shape[1:])
-        scale = torch.rsqrt(torch.maximum(var * fan_in, self.eps))
+        scale = torch.rsqrt(torch.maximum(var * self.fan_in, self.eps))
         return (self.weight - mean) * scale * self.gain
         
     def forward(self, x):
