@@ -1,12 +1,11 @@
 # NFNet Pytorch Implementation
 
-This repo contains pretrained NFNet models F0-F5 with high ImageNet accuracy from the paper *High-Performance Large-Scale Image Recognition Without Normalization*.
-The pretrained weights are converted from the official repository.
+This repo contains pretrained NFNet models F0-F6 with high ImageNet accuracy from the paper *High-Performance Large-Scale Image Recognition Without Normalization*. The small models are as accurate as an EfficientNet-B7, but train 8.7 times faster. The large models set a new SOTA top-1 accuracy on ImageNet.
  
 | NFNet  | F0  | F1  | F2  | F3  | F4  | F5  | F6+SAM  |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 |  Top-1 accuracy Brock et al. | 83.6 | 84.7 | 85.1 | 85.7 | 85.9 | 86.0 | 86.5 |
-|  Top-1 accuracy this implementation | 82.82 | 84.63 | 84.90 | 85.46 | TBD | TBD | TBD |
+|  Top-1 accuracy this implementation | 82.82 | 84.63 | 84.90 | 85.46 | 85.66 | 85.62 | TBD |
 
 All credits go to the authors of the [original paper](https://arxiv.org/abs/2102.06171). This repo is heavily inspired by their nice JAX implementation in the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/). Visit their repo for citing.
 
@@ -69,7 +68,7 @@ optimizer = SGD_AGC(
         nesterov=True)
 ```
 
-It is important to exclude certain layers from clipping or momentum. The author recommends to exclude the last fully convolutional from clipping and the bias/gain parameters from weight decay:
+It is important to exclude certain layers from clipping or momentum. The authors recommends to exclude the last fully convolutional from clipping and the bias/gain parameters from weight decay:
 ```python
 import re
 
