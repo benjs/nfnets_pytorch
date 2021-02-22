@@ -98,27 +98,7 @@ There is still some parts missing for complete training from scratch:
 
 ## Contribute
 
-The implementation is still in an early stage in terms of usability / testing. If you have an idea to improve this repo open an issue, start a discussion or submit a pull request.
+The implementation is still in an early stage in terms of usability / testing. 
+If you have an idea to improve this repo open an issue, start a discussion or submit a pull request.
 
-## Development status
-
-- [x] Pre-trained NFNet Models
-  - [x] F0-F5
-  - [ ] F6+SAM
-  - [x] Scaled weight standardization
-  - [x] Squeeze and excite
-  - [x] Stochastic depth
-  - [ ] FP16 activations
-- [x] SGD with unit adaptive gradient clipping (SGD-AGC)
-  - [x] Exclude certain layers from weight-decay, clipping
-  - [ ] FP16 gradients
-- [ ] PyPI package
-- [ ] PyTorch hub submission
-- [ ] Label smoothing loss from [Szegedy et al.](https://arxiv.org/abs/1512.00567)
-- [x] Training on ImageNet
-- [x] Pre-trained weights 
-- [x] Tensorboard support 
-- [ ] general usability improvements
-- [ ] Multi-GPU support
-- [ ] Data augmentation
-- [ ] Signal propagation plots (from [first paper](https://arxiv.org/abs/2101.08692))
+The current development status can be seen in [this](https://github.com/benjs/nfnets_pytorch/projects/1) project board. 
