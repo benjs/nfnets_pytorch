@@ -31,7 +31,7 @@ The model variant is automatically derived from the parameter count in the pretr
 python3 eval.py --pretrained pretrained/F0_haiku.npz --dataset path/to/imagenet/valset/
 ```
 
-You can download the ImageNet validation set from the [ILSVRC2012 challenge site](http://www.image-net.org/challenges/LSVRC/2012/downloads.php#images) after asking for access with, for instance, your .edu mail address.
+You can download the ImageNet validation set from the [ILSVRC2012 challenge site](http://www.image-net.org/challenges/LSVRC/2012/downloads.php#images) after asking for access with, for instance, your .edu mail address or from [AcademicTorrents](https://academictorrents.com/)
 
 ## Scaled weight standardization convolutions in your own model 
 Simply replace all your `nn.Conv2d` with `WSConv2D` and all your `nn.ReLU` with `VPReLU` or `VPGELU` (variance preserving ReLU/GELU).
@@ -98,27 +98,7 @@ There is still some parts missing for complete training from scratch:
 
 ## Contribute
 
-The implementation is still in an early stage in terms of usability / testing. If you have an idea to improve this repo open an issue, start a discussion or submit a pull request.
+The implementation is still in an early stage in terms of usability / testing. 
+If you have an idea to improve this repo open an issue, start a discussion or submit a pull request.
 
-## Development status
-
-- [x] Pre-trained NFNet Models
-  - [x] F0-F5
-  - [ ] F6+SAM
-  - [x] Scaled weight standardization
-  - [x] Squeeze and excite
-  - [x] Stochastic depth
-  - [ ] FP16 activations
-- [x] SGD with unit adaptive gradient clipping (SGD-AGC)
-  - [x] Exclude certain layers from weight-decay, clipping
-  - [ ] FP16 gradients
-- [ ] PyPI package
-- [ ] PyTorch hub submission
-- [ ] Label smoothing loss from [Szegedy et al.](https://arxiv.org/abs/1512.00567)
-- [x] Training on ImageNet
-- [x] Pre-trained weights 
-- [x] Tensorboard support 
-- [ ] general usability improvements
-- [ ] Multi-GPU support
-- [ ] Data augmentation
-- [ ] Signal propagation plots (from [first paper](https://arxiv.org/abs/2101.08692))
+The current development status can be seen in [this](https://github.com/benjs/nfnets_pytorch/projects/1) project board. 
