@@ -31,7 +31,7 @@ The model variant is automatically derived from the parameter count in the pretr
 python3 eval.py --pretrained pretrained/F0_haiku.npz --dataset path/to/imagenet/valset/
 ```
 
-You can download the ImageNet validation set from the [ILSVRC2012 challenge site](http://www.image-net.org/challenges/LSVRC/2012/downloads.php#images) after asking for access with, for instance, your .edu mail address.
+You can download the ImageNet validation set from the [ILSVRC2012 challenge site](http://www.image-net.org/challenges/LSVRC/2012/downloads.php#images) after asking for access with, for instance, your .edu mail address or from [AcademicTorrents](https://academictorrents.com/)
 
 ## Scaled weight standardization convolutions in your own model 
 Simply replace all your `nn.Conv2d` with `WSConv2D` and all your `nn.ReLU` with `VPReLU` or `VPGELU` (variance preserving ReLU/GELU).
