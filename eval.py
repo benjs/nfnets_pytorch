@@ -15,14 +15,16 @@ from dataset import get_dataset
 from model import NFNet
 from pretrained import pretrained_nfnet
 
+# Evaluation method used in the paper
+# This seems to perform slightly worse than a simple resize
 class Pad32CenterCrop(nn.Module):
     def __init__(self, size:int):
         super().__init__()
         self.size = size
+        self.scaled_size = (size+32, size+32)
         
     def forward(self, img:Image):
-        scaled_size = tuple(x + 32 for x in img.size)
-        img = tF_pil.resize(img=img, size=scaled_size, interpolation=PIL.Image.BICUBIC)
+        img = tF_pil.resize(img=img, size=self.scaled_size, interpolation=PIL.Image.BICUBIC)
         return tF.center_crop(img, self.size)
 
 def evaluate_on_imagenet(model:NFNet, dataset_dir:Path, batch_size=50, device='cuda:0'): 
