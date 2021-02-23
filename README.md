@@ -1,5 +1,7 @@
 # NFNet Pytorch Implementation
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/benjs/nfnets_pytorch/blob/master/demo.ipynb)
+
 This repo contains pretrained NFNet models F0-F6 with high ImageNet accuracy from the paper *High-Performance Large-Scale Image Recognition Without Normalization*. The small models are as accurate as an EfficientNet-B7, but train 8.7 times faster. The large models set a new SOTA top-1 accuracy on ImageNet.
  
 | NFNet  | F0  | F1  | F2  | F3  | F4  | F5  | F6+SAM  |
@@ -14,11 +16,11 @@ All credits go to the authors of the [original paper](https://arxiv.org/abs/2102
 git clone https://github.com/benjs/nfnets_pytorch.git
 pip3 install -r requirements.txt
 ```
-or if you don't want eval and training script
+or if you don't need eval and training script
 ```
 pip install git+https://github.com/benjs/nfnets_pytorch
 ```
-Download pretrained weights from the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/).
+Download pretrained weights from the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/) and call
 
 ```python
 from nfnets import pretrained_nfnet
