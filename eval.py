@@ -12,8 +12,7 @@ from torch.utils.data.dataloader import DataLoader
 from torchvision.transforms.transforms import Compose, Normalize, Resize, ToTensor
 
 from dataset import get_dataset
-from model import NFNet
-from pretrained import pretrained_nfnet
+from nfnets import NFNet, pretrained_nfnet
 
 # Evaluation method used in the paper
 # This seems to perform slightly worse than a simple resize

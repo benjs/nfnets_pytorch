@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 from pathlib import Path
 
-from model import NFNet
+from nfnets import NFNet
 
 def pretrained_nfnet(path, stochdepth_rate:float=0.5, alpha:float=0.2, activation:str='gelu') -> NFNet:
     if isinstance(path, str):

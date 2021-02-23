@@ -14,11 +14,14 @@ All credits go to the authors of the [original paper](https://arxiv.org/abs/2102
 git clone https://github.com/benjs/nfnets_pytorch.git
 pip3 install -r requirements.txt
 ```
-
-Download pretrained weights from the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/) and place them in the pretrained folder.
+or if you don't want eval and training script
+```
+pip install git+https://github.com/benjs/nfnets_pytorch
+```
+Download pretrained weights from the [official repository](https://github.com/deepmind/deepmind-research/blob/master/nfnets/).
 
 ```python
-from pretrained import pretrained_nfnet
+from nfnets import pretrained_nfnet
 model_F0 = pretrained_nfnet('pretrained/F0_haiku.npz')
 model_F1 = pretrained_nfnet('pretrained/F1_haiku.npz')
 # ...
@@ -38,7 +41,7 @@ Simply replace all your `nn.Conv2d` with `WSConv2D` and all your `nn.ReLU` with 
 
 ``` python
 import torch.nn as nn
-from model import WSConv2D, VPReLU, VPGELU
+from nfnets import WSConv2D, VPReLU, VPGELU
 
 # Simply replace your nn.Conv2d layers
 class MyNet(nn.Module):
@@ -57,7 +60,7 @@ class MyNet(nn.Module):
 ## SGD with adaptive gradient clipping in your own model
 Simply replace your `SGD` optimizer with `SGD_AGC`.
 ```python
-from optim import SGD_AGC
+from nfnets import SGD_AGC
 
 optimizer = SGD_AGC(
         named_params=model.named_parameters(), # Pass named parameters

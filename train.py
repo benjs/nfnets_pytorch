@@ -17,9 +17,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms.transforms import Compose, Normalize, Resize, ToTensor, RandomHorizontalFlip, RandomCrop
 
 from dataset import get_dataset
-from model import NFNet
-from optim import SGD_AGC
-from pretrained import pretrained_nfnet
+from nfnets import NFNet, SGD_AGC, pretrained_nfnet
 
 def train(config:dict) -> None:
     if config['device'].startswith('cuda'):

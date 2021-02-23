@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 import re
 
 nfnet_params = {
@@ -247,7 +246,7 @@ class WSConv2D(nn.Conv2d):
         nn.init.xavier_normal_(self.weight)
         self.gain = nn.Parameter(torch.ones(self.out_channels, 1, 1, 1))
         self.register_buffer('eps', torch.tensor(1e-4, requires_grad=False), persistent=False)
-        self.register_buffer('fan_in', torch.tensor(np.prod(self.weight.shape[1:]), requires_grad=False).type_as(self.weight), persistent=False)
+        self.register_buffer('fan_in', torch.tensor(self.weight.shape[1:].numel(), requires_grad=False).type_as(self.weight), persistent=False)
 
     def standardized_weights(self):
         # Original code: HWCN
