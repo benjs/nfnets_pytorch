@@ -1,5 +1,5 @@
 # --find-links https://download.pytorch.org/whl/torch_stable.html
---find-links https://download.pytorch.org/whl/cu110/torch_stable.html
+--find-links https://download.pytorch.org/whl/cu111/torch_stable.html
 
 dill
 git+https://github.com/deepmind/dm-haiku
@@ -11,5 +11,5 @@ pillow-simd
 pyyaml
 requests
 tensorboard
-torch>=1.7.1+cu110
-torchvision>=0.8.2+cu110
+torch>=1.8
+torchvision>=0.9
