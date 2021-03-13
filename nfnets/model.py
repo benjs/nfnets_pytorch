@@ -64,6 +64,17 @@ activations_dict = {
     'relu': VPReLU(inplace=True)
 }
 
+def exclude_from_weight_decay(name:str) -> bool:
+    # Regex to find layer names like
+    # "stem.6.bias", "stem.6.gain", "body.0.skip_gain", 
+    # "body.0.conv0.bias", "body.0.conv0.gain"
+    regex = re.compile('stem.*(bias|gain)|conv.*(bias|gain)|skip_gain')
+    return len(regex.findall(name)) > 0
+
+def exclude_from_clipping(name: str) -> bool:
+    # Last layer should not be clipped
+    return name.startswith('linear')
+
 class NFNet(nn.Module):
     def __init__(self, num_classes:int, variant:str='F0', stochdepth_rate:float=None, 
         alpha:float=0.2, se_ratio:float=0.5, activation:str='gelu'):
@@ -144,17 +155,6 @@ class NFNet(nn.Module):
             pool = self.dropout(pool)
 
         return self.linear(pool)
-
-    def exclude_from_weight_decay(self, name:str) -> bool:
-        # Regex to find layer names like
-        # "stem.6.bias", "stem.6.gain", "body.0.skip_gain", 
-        # "body.0.conv0.bias", "body.0.conv0.gain"
-        regex = re.compile('stem.*(bias|gain)|conv.*(bias|gain)|skip_gain')
-        return len(regex.findall(name)) > 0
-
-    def exclude_from_clipping(self, name: str) -> bool:
-        # Last layer should not be clipped
-        return name.startswith('linear')
 
 class Stem(nn.Module):
     def __init__(self, activation:str='gelu'):
