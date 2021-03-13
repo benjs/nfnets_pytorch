@@ -1,6 +1,6 @@
 # This file contains the default train settings
 device: 'cuda:0'  # or 'cpu'
-amp: False        # Enable automatic mixed precision
+amp: True        # Enable automatic mixed precision
 
 # Model
 variant: 'F0'         # F0 - F7
@@ -30,3 +30,7 @@ nesterov: True        # Enable nesterov correction
 
 do_clip: True         # Enable adaptive gradient clipping
 clipping: 0.1         # Adaptive gradient clipping parameter
+
+# Distributed training
+ddp: False     # Enable distributed training
+world_size: 1 # Number of processes spawned
